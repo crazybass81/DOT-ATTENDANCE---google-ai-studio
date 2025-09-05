@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo, useRef } from 'react';
 import { Employee } from '../../types';
-import { Input, Textarea, Tabs, DatePicker } from '../ui';
+import { Input, Textarea, Tabs, DatePicker, Button } from '../ui';
 
 export interface EmployeeFormData extends Partial<Employee> {
     accountNumber?: string;
@@ -13,12 +13,14 @@ interface EmployeeInfoFormProps {
     onDataChange: (field: keyof EmployeeFormData, value: any) => void;
     activeTab: string;
     onTabChange: (tab: string) => void;
+    isNew?: boolean;
 }
 
 const KOREAN_BANKS = ['선택', '국민', '신한', '우리', '하나', '기업', '농협', '카카오뱅크', '케이뱅크', '토스뱅크', '새마을금고', '우체국', 'SC제일', '씨티', '수협', '경남', '광주', '대구', '부산', '전북', '제주', '산업', '기타'];
 
-export const EmployeeInfoForm: React.FC<EmployeeInfoFormProps> = ({ data, onDataChange, activeTab, onTabChange }) => {
+export const EmployeeInfoForm: React.FC<EmployeeInfoFormProps> = ({ data, onDataChange, activeTab, onTabChange, isNew }) => {
     const [isHireDatePickerOpen, setIsHireDatePickerOpen] = useState(false);
+    const colorInputRef = useRef<HTMLInputElement>(null);
     
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
         onDataChange(e.target.name as keyof EmployeeFormData, e.target.value);
@@ -62,6 +64,12 @@ export const EmployeeInfoForm: React.FC<EmployeeInfoFormProps> = ({ data, onData
 
         onDataChange('accountNumber', `${newBank} ${newNumber}`.trim());
     };
+
+    const maskPhoneNumber = (phone: string) => {
+        if (!phone) return '';
+        // Masks phone numbers like 010-1234-5678 to 010-****-5678
+        return phone.replace(/(\d{3}-)\d{4}(-\d{4})/, '$1****$2');
+    };
     
     const renderDocumentRow = (label: string, docType: 'contract' | 'bankAccountCopy', docName: string | null | undefined) => (
          <div className="flex items-center justify-between p-3 bg-slate-50 rounded-md">
@@ -84,13 +92,22 @@ export const EmployeeInfoForm: React.FC<EmployeeInfoFormProps> = ({ data, onData
         switch (activeTab) {
             case '기본':
                 return <div className="col-span-full grid grid-cols-2 gap-x-4 gap-y-5">
-                    <Input label="이름" name="name" value={data.name || ''} onChange={handleInputChange} disabled />
-                    <Input label="연락처" name="phone" value={data.phone || ''} onChange={handleInputChange} />
-                    <Input label="생년월일" name="birthdate" type="date" value={data.birthdate || ''} onChange={handleInputChange} disabled />
+                    <Input label="이름" name="name" value={data.name || ''} onChange={handleInputChange} disabled={isNew} />
+                    <Input 
+                        label="연락처" 
+                        name="phone" 
+                        value={isNew ? maskPhoneNumber(data.phone || '') : (data.phone || '')}
+                        onChange={handleInputChange}
+                        disabled={isNew}
+                    />
+                    <Input label="생년월일" name="birthdate" type="date" value={data.birthdate || ''} onChange={handleInputChange} disabled={isNew} />
                     <div>
                         <label htmlFor="employeeColor" className="block text-sm font-medium text-slate-700 mb-1">근로자 색상</label>
                         <div className="relative flex items-center border border-slate-300 bg-white rounded-md shadow-sm">
-                             <div className="w-10 h-10 flex items-center justify-center shrink-0">
+                             <div 
+                                className="w-10 h-10 flex items-center justify-center shrink-0 cursor-pointer"
+                                onClick={() => colorInputRef.current?.click()}
+                            >
                                 <div className="w-6 h-6 rounded border" style={{ backgroundColor: data.color || '#ffffff' }}></div>
                             </div>
                             <input
@@ -98,11 +115,14 @@ export const EmployeeInfoForm: React.FC<EmployeeInfoFormProps> = ({ data, onData
                                 type="text"
                                 name="color"
                                 value={data.color || ''}
+                                onClick={() => colorInputRef.current?.click()}
                                 onChange={handleInputChange}
-                                className="w-full pl-1 py-2 border-l focus:outline-none focus:ring-0 border-transparent bg-transparent"
+                                className="w-full pl-1 py-2 border-l focus:outline-none focus:ring-0 border-transparent bg-transparent cursor-pointer"
                                 placeholder="#RRGGBB"
+                                readOnly
                             />
                             <input
+                                ref={colorInputRef}
                                 id="employeeColor"
                                 type="color"
                                 value={data.color || '#ffffff'}
@@ -205,7 +225,28 @@ export const EmployeeInfoForm: React.FC<EmployeeInfoFormProps> = ({ data, onData
 
     return (
         <div className="space-y-4">
-            <Tabs tabs={['기본', '고용', '급여', '서류']} activeTab={activeTab} onTabChange={onTabChange} />
+            {isNew ? (
+                 <div className="flex justify-center items-center gap-2 border-b">
+                    {['기본', '고용', '급여', '서류'].map(tab => (
+                        <Button
+                            key={tab}
+                            type="button"
+                            variant={activeTab === tab ? 'primary' : 'secondary'}
+                            onClick={() => onTabChange(tab)}
+                            className={`
+                                ${activeTab === tab 
+                                    ? 'shadow-sm'
+                                    : '!bg-transparent !text-slate-500 !shadow-none hover:!bg-slate-100'
+                                }`
+                            }
+                        >
+                            {tab}
+                        </Button>
+                    ))}
+                </div>
+            ) : (
+                <Tabs tabs={['기본', '고용', '급여', '서류']} activeTab={activeTab} onTabChange={onTabChange} align="center" />
+            )}
             <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-5">
                 {renderTabContent()}
             </div>

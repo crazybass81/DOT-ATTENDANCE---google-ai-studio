@@ -3,7 +3,8 @@ import React, { ReactNode, useRef, useState, useEffect } from 'react';
 interface ModalProps {
   isOpen: boolean;
   onClose: () => void;
-  title: string;
+  // FIX: Changed type from string to ReactNode to allow JSX elements in the title.
+  title: ReactNode;
   children: ReactNode;
   size?: 'sm' | 'md' | 'lg' | 'xl';
   hideCloseButton?: boolean;
@@ -21,7 +22,7 @@ export const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children, 
   };
 
   const titleContainerClasses = `flex items-center p-4 border-b ${
-    hideCloseButton && titleAlign === 'center' ? 'justify-center' : 'justify-between'
+    titleAlign === 'center' ? 'justify-center relative' : 'justify-between'
   }`;
 
   return (
@@ -30,7 +31,12 @@ export const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children, 
         <div className={titleContainerClasses}>
           <h3 className="text-lg font-semibold">{title}</h3>
           {!hideCloseButton && (
-            <button onClick={onClose} className="text-slate-500 hover:text-slate-800">
+            <button 
+                onClick={onClose} 
+                className={`text-slate-500 hover:text-slate-800 ${
+                    titleAlign === 'center' ? 'absolute right-4 top-1/2 -translate-y-1/2' : ''
+                }`}
+            >
               <span className="text-xl" role="img" aria-label="Close">❌</span>
             </button>
           )}
@@ -115,21 +121,22 @@ interface TabsProps {
     tabs: string[];
     activeTab: string;
     onTabChange: (tab: string) => void;
+    align?: 'left' | 'center';
 }
 
-export const Tabs: React.FC<TabsProps> = ({ tabs, activeTab, onTabChange }) => {
+export const Tabs: React.FC<TabsProps> = ({ tabs, activeTab, onTabChange, align = 'left' }) => {
     return (
-        <div className="p-1 bg-slate-200 rounded-lg inline-flex items-center" aria-label="Tabs">
+        <div className={`flex border-b ${align === 'center' ? 'justify-center' : ''}`} aria-label="Tabs">
             {tabs.map((tab) => (
                 <button
                     key={tab}
                     type="button"
                     onClick={() => onTabChange(tab)}
-                    className={`${
+                    className={`whitespace-nowrap py-3 px-4 text-base font-medium border-b-2 transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-0 rounded-t-md ${
                         tab === activeTab
-                            ? 'bg-white text-blue-600 shadow-sm'
-                            : 'text-slate-600 hover:bg-white/70 hover:text-slate-800'
-                    } whitespace-nowrap py-2 px-8 rounded-md font-semibold text-base transition-all duration-200 ease-in-out`}
+                            ? 'border-blue-600 text-blue-600'
+                            : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300'
+                    }`}
                 >
                     {tab}
                 </button>
@@ -157,22 +164,26 @@ export const FilterDropdown: React.FC<{
     }, [onClose]);
 
     return (
-        <div ref={dropdownRef} className="absolute z-20 top-full mt-1 left-0 w-40 bg-white rounded-md shadow-lg border">
-            <ul className="max-h-48 overflow-y-auto">
-                {options.map(option => (
-                    <li key={option} className="px-3 py-2 text-sm hover:bg-slate-100">
-                        <label className="flex items-center cursor-pointer font-normal">
-                            <input
-                                type="checkbox"
-                                checked={selected.includes(option)}
-                                onChange={() => onToggle(option)}
-                                className="h-4 w-4 text-blue-600 border-slate-300 rounded focus:ring-blue-500"
-                            />
-                            <span className="ml-2">{option}</span>
-                        </label>
-                    </li>
-                ))}
-            </ul>
+        <div ref={dropdownRef} className="absolute z-20 top-full mt-2 left-0 w-64 bg-white rounded-md shadow-lg border p-3">
+            <div className="flex flex-wrap gap-2">
+                {options.map(option => {
+                    const isSelected = selected.includes(option);
+                    return (
+                        <button
+                            key={option}
+                            type="button"
+                            onClick={() => onToggle(option)}
+                            className={`px-3 py-1 rounded-full text-sm font-medium transition-colors ${
+                                isSelected
+                                    ? 'bg-blue-600 text-white'
+                                    : 'bg-slate-200 text-slate-700 hover:bg-slate-300'
+                            }`}
+                        >
+                            {option}
+                        </button>
+                    );
+                })}
+            </div>
         </div>
     );
 };
