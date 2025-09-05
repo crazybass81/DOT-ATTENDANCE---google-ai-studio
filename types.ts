@@ -43,6 +43,8 @@ export interface Employee {
     payRate: number;
     color?: string;
     reasonForResignation?: string;
+    storeId?: string;
+    jobType?: string;
 }
 
 export interface AttendanceRecord {
@@ -66,6 +68,7 @@ export interface Schedule {
     start: Date;
     end: Date;
     breakMinutes: number;
+    storeId: string;
 }
 
 export interface TimeOffRequest {
