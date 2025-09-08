@@ -1,14 +1,13 @@
 
 
 
-
 import React, { useState, useEffect, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { MOCK_EMPLOYEES_DATA } from '../../data/mockData';
 import { Employee, EmployeeAppStatus, AttendanceRecord, AttendanceStatus } from '../../types';
 import { Button, Card, Modal } from '../../components/ui';
 import { calculateWorkHours } from '../../utils';
-// FIX: Corrected import path for admin view components to use 'Admin' with PascalCase.
+// FIX: Corrected import path casing for admin view components to use PascalCase 'Admin'.
 import { AttendanceView } from '../Admin/AttendanceView';
 
 
@@ -41,6 +40,26 @@ const ActionButton = ({ status, onClick }: { status: 'none' | 'working' | 'break
     );
 };
 
+const StatusIndicator = ({ status }: { status: EmployeeAppStatus }) => {
+    const statusConfig = {
+        [EmployeeAppStatus.NONE]: { text: '업무 시작 전', emoji: '☀️', className: 'bg-slate-400 text-white' },
+        [EmployeeAppStatus.WORKING]: { text: '업무 중', emoji: '🧑‍💻', className: 'bg-green-500 text-white' },
+        [EmployeeAppStatus.BREAK]: { text: '휴식 중', emoji: '☕', className: 'bg-yellow-500 text-white' },
+        [EmployeeAppStatus.DONE]: { text: '업무 종료', emoji: '🎉', className: 'bg-gray-600 text-white' },
+        [EmployeeAppStatus.AWAY]: { text: '외근 중', emoji: '🚗', className: 'bg-purple-500 text-white' },
+    };
+
+    const config = statusConfig[status] || { text: '알 수 없음', emoji: '❓', className: 'bg-slate-400 text-white' };
+
+    return (
+        <div className="flex justify-center items-center my-6">
+            <div className={`w-48 h-48 rounded-full flex flex-col items-center justify-center p-2 text-center font-bold shadow-lg ${config.className}`}>
+                <span className="text-6xl mb-2" role="img" aria-hidden="true">{config.emoji}</span>
+                <span className="text-2xl">{config.text}</span>
+            </div>
+        </div>
+    );
+};
 
 const DashboardContent = ({ employee, status, workLog, onStatusChange }: {
     employee: Employee;
@@ -88,13 +107,10 @@ const DashboardContent = ({ employee, status, workLog, onStatusChange }: {
              <div className="space-y-6">
                 <div className="text-center">
                     <p className="text-lg text-slate-600">{employee.name}님, 안녕하세요!</p>
-                    <p className="text-2xl font-bold text-slate-800">{getStatusText()}</p>
-                </div>
-                
-                <div className="flex justify-center items-center my-8">
-                    <ActionButton status={status.toLowerCase() as 'none' | 'working' | 'break' | 'done' | 'away'} onClick={onStatusChange} />
                 </div>
 
+                <StatusIndicator status={status} />
+                
                 <div className="space-y-3 px-4">
                     {renderActionButtons()}
                 </div>
@@ -233,6 +249,8 @@ const WorkerDashboardPage = ({ allEmployees, allAttendance, setAttendance }: Wor
                     clockIn: currentTimeStr,
                     breakStart: null,
                     breakEnd: null,
+                    awayStart: null,
+                    awayEnd: null,
                     clockOut: null,
                     workHours: 0,
                     status: AttendanceStatus.NORMAL,
@@ -258,6 +276,9 @@ const WorkerDashboardPage = ({ allEmployees, allAttendance, setAttendance }: Wor
                     if (recordToUpdate.breakStart && !recordToUpdate.breakEnd) {
                         recordToUpdate.breakEnd = currentTimeStr;
                     } // Logic for returning from 'away' can be added here
+                    if (customLabel === '외근 복귀' && recordToUpdate.awayStart && !recordToUpdate.awayEnd) {
+                        recordToUpdate.awayEnd = currentTimeStr;
+                    }
                     break;
                 case EmployeeAppStatus.DONE:
                     recordToUpdate.clockOut = currentTimeStr;
@@ -269,7 +290,9 @@ const WorkerDashboardPage = ({ allEmployees, allAttendance, setAttendance }: Wor
                     );
                     break;
                 case EmployeeAppStatus.AWAY:
-                    // Could add logic for away status if needed
+                    if(!recordToUpdate.awayStart) {
+                        recordToUpdate.awayStart = currentTimeStr;
+                    }
                     break;
             }
             updatedAttendance[recordIndex] = recordToUpdate;
@@ -287,13 +310,18 @@ const WorkerDashboardPage = ({ allEmployees, allAttendance, setAttendance }: Wor
 
         const log: { label: string; time: string }[] = [];
         if (todayRecord.clockIn) log.push({ label: '출근', time: todayRecord.clockIn });
+        if (todayRecord.awayStart) log.push({ label: '외근 시작', time: todayRecord.awayStart });
         if (todayRecord.breakStart) log.push({ label: '휴식 시작', time: todayRecord.breakStart });
         if (todayRecord.breakEnd) log.push({ label: '업무 복귀', time: todayRecord.breakEnd });
+        if (todayRecord.awayEnd) log.push({ label: '외근 복귀', time: todayRecord.awayEnd });
         if (todayRecord.clockOut) log.push({ label: '퇴근', time: todayRecord.clockOut });
         
         let status = EmployeeAppStatus.NONE;
         if (todayRecord.clockIn) {
             status = EmployeeAppStatus.WORKING;
+            if (todayRecord.awayStart && !todayRecord.awayEnd) {
+                status = EmployeeAppStatus.AWAY;
+            }
             if (todayRecord.breakStart && !todayRecord.breakEnd) {
                 status = EmployeeAppStatus.BREAK;
             }
@@ -302,7 +330,7 @@ const WorkerDashboardPage = ({ allEmployees, allAttendance, setAttendance }: Wor
             }
         }
         
-        return { derivedStatus: status, derivedWorkLog: log };
+        return { derivedStatus: status, derivedWorkLog: log.sort((a,b) => a.time.localeCompare(b.time)) };
     }, [allAttendance, employee]);
 
     const employeeAttendance = useMemo(() => {

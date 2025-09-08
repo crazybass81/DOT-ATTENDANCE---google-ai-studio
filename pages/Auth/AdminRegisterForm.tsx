@@ -1,4 +1,5 @@
 
+
 import React, { useState, useRef, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Button, Input, Modal, Textarea } from '../../components/ui';
@@ -22,12 +23,8 @@ const TypeSelectionCard = ({ title, description, emoji, onClick }: { title: stri
 
 const ProgressIndicator = ({ step, userType }: { step: number; userType: string; }) => {
     const getThirdStepTitle = () => {
-        if (step < 3) {
-            return '정보 확인/입력';
-        }
-        if (userType === 'sole_proprietor' || userType === 'corporate') {
-            return '사업자 정보 입력';
-        }
+        if (step < 3) return '정보 확인/입력';
+        if (userType === 'sole_proprietor' || userType === 'corporate') return '사업자 정보 입력';
         return '정보 확인/입력';
     };
 
@@ -36,27 +33,51 @@ const ProgressIndicator = ({ step, userType }: { step: number; userType: string;
         { number: 2, title: '회원 유형 선택' },
         { number: 3, title: getThirdStepTitle() }
     ];
-    
-    return (
-        <div className="flex justify-center items-center text-lg font-bold">
-            {steps.map((s, index) => {
-                const isCompleted = step > s.number;
-                const isCurrent = step === s.number;
-                
-                let textColor = 'text-slate-500';
-                if (isCurrent) {
-                    textColor = 'text-blue-600';
-                } else if (isCompleted) {
-                    textColor = 'text-slate-800';
-                }
 
-                return (
-                    <React.Fragment key={s.number}>
-                        <span className={textColor}>{s.title}</span>
-                        {index < steps.length - 1 && <span className="mx-3 text-slate-400">&gt;</span>}
-                    </React.Fragment>
-                );
-            })}
+    return (
+        <div className="w-full px-4 sm:px-8 py-4">
+            <div className="flex items-start">
+                {steps.map((s, index) => {
+                    const isCompleted = step > s.number;
+                    const isCurrent = step === s.number;
+
+                    const state = isCompleted ? 'completed' : isCurrent ? 'current' : 'upcoming';
+
+                    const stateClasses = {
+                        completed: {
+                            circle: 'bg-blue-600 text-white',
+                            text: 'text-slate-700',
+                            connector: 'border-blue-600'
+                        },
+                        current: {
+                            circle: 'bg-white border-2 border-blue-600 text-blue-600',
+                            text: 'text-blue-600',
+                            connector: 'border-slate-300'
+                        },
+                        upcoming: {
+                            circle: 'bg-white border-2 border-slate-300 text-slate-400',
+                            text: 'text-slate-400',
+                            connector: 'border-slate-300'
+                        }
+                    };
+
+                    const { circle, text, connector } = stateClasses[state];
+
+                    return (
+                        <React.Fragment key={s.number}>
+                            <div className="flex flex-col items-center w-24">
+                                <div className={`rounded-full h-8 w-8 flex items-center justify-center font-bold text-sm transition-colors duration-300 ${circle}`}>
+                                    {isCompleted ? '✓' : s.number}
+                                </div>
+                                <p className={`mt-2 text-center text-xs font-bold uppercase whitespace-nowrap transition-colors duration-300 ${text}`}>{s.title}</p>
+                            </div>
+                            {index < steps.length - 1 && (
+                                <div className={`flex-auto border-t-2 mt-4 transition-colors duration-300 ${step > s.number ? stateClasses.completed.connector : connector}`}></div>
+                            )}
+                        </React.Fragment>
+                    );
+                })}
+            </div>
         </div>
     );
 };
@@ -116,7 +137,7 @@ export const AdminRegisterForm = ({ onBackToLogin }: { onBackToLogin: () => void
     useEffect(() => {
         let interval: number | undefined;
         if (isCodeSent && timer > 0 && !isVerified) {
-            interval = setInterval(() => {
+            interval = window.setInterval(() => {
                 setTimer(prev => prev - 1);
             }, 1000);
         } else if (timer === 0) {
@@ -364,18 +385,18 @@ export const AdminRegisterForm = ({ onBackToLogin }: { onBackToLogin: () => void
     const isWorkerConfirm = formData.userType === 'worker' && isConfirmModalOpen;
     
     return (
-        <div className="w-full max-w-md">
+        <div className="w-full max-w-lg flex flex-col h-full max-h-[85vh]">
             <div className="text-center mb-8">
                 <h1 className="text-4xl font-bold text-blue-700">DOT ATTENDANCE</h1>
                 <p className="text-lg text-slate-600 mt-1">회원가입</p>
             </div>
             {step < 4 && (
-                <div className="mb-4">
+                <div className="mb-6">
                     <ProgressIndicator step={step} userType={formData.userType} />
                 </div>
             )}
-            <div className="bg-white/70 backdrop-blur-sm border border-white/30 rounded-lg shadow-xl">
-                <div className="p-6">
+            <div className="bg-white/70 backdrop-blur-sm border border-white/30 rounded-lg shadow-xl flex flex-col flex-1 overflow-hidden">
+                <div className="p-8 overflow-y-auto">
                     {step === 1 && (
                         <form onSubmit={handleNext} className="space-y-4">
                             

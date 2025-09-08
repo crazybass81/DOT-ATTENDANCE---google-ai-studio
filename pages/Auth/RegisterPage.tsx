@@ -1,6 +1,8 @@
 
+
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
+// FIX: Corrected import path casing to use PascalCase 'Auth' directory.
 import { AdminRegisterForm } from './AdminRegisterForm';
 
 const RegisterPage = () => {
@@ -15,7 +17,7 @@ const RegisterPage = () => {
                 <div className="blob blob-admin-4"></div>
                 <div className="blob blob-admin-5"></div>
             </div>
-            <div className="relative z-10 flex min-h-screen flex-col items-center justify-center p-4">
+            <div className="relative z-10 flex min-h-screen flex-col items-center justify-center p-16">
                 <AdminRegisterForm onBackToLogin={() => navigate('/')} />
             </div>
         </div>

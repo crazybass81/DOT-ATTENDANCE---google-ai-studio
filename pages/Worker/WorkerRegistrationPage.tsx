@@ -1,8 +1,11 @@
 
 
+
+
 import React, { useState, useRef, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { Button, Card, DatePicker } from '../../components/ui';
+// FIX: Corrected import path to shared QRScannerModal component.
 import QRScannerModal from '../../components/shared/QRScannerModal';
 
 interface WorkerRegistrationData {

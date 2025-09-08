@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button, Input, Modal, Textarea } from '../components/ui';
@@ -62,10 +63,6 @@ export const LoginPage = () => {
         );
 
         if (workerAccount) {
-            if (workerAccount.id === 101) { // 김성실's ID
-                setError('김성실 계정은 관리자 계정에 통합되었습니다.\nbunsik-admin으로 로그인 후 전환해주세요.');
-                return;
-            }
             localStorage.setItem('loggedInEmployeeId', String(workerAccount.id));
             localStorage.removeItem('loggedInAdmin');
             if (!workerAccount.storeId) {

@@ -4,12 +4,14 @@
 
 
 
+
+
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { MOCK_EMPLOYEES_DATA } from '../data/mockData';
 import { Employee, EmployeeAppStatus } from '../types';
 import { Button, Card, Modal } from '../components/ui';
-// FIX: Corrected import path for admin view components to use 'Admin' with PascalCase.
+// FIX: Corrected import path for admin view components to use PascalCase 'Admin' and a relative path.
 import { AttendanceView } from './Admin/AttendanceView';
 
 const ActionButton = ({ status, onClick }: { status: 'none' | 'working' | 'break' | 'done' | 'away', onClick: (newStatus: EmployeeAppStatus) => void }) => {
@@ -77,7 +79,7 @@ const DashboardContent = ({ employee, status, workLog, onStatusChange }: {
                     </>
                 );
             case EmployeeAppStatus.BREAK:
-                 return <Button onClick={() => onStatusChange(EmployeeAppStatus.NONE)} className="w-full !bg-blue-600 hover:!bg-blue-700 text-lg py-3">업무 복귀</Button>;
+                 return <Button onClick={() => onStatusChange(EmployeeAppStatus.WORKING)} className="w-full !bg-blue-600 hover:!bg-blue-700 text-lg py-3">업무 복귀</Button>;
             default:
                 return null;
         }

@@ -6,11 +6,15 @@ import { HashRouter, Routes, Route } from 'react-router-dom';
 import { MOCK_EMPLOYEES_DATA, MOCK_ATTENDANCE } from './data/mockData';
 import { Employee, AttendanceRecord } from './types';
 
-// FIX: Corrected import paths to use PascalCase to resolve casing conflicts.
+// FIX: Corrected import path casing to match file system (Admin).
 import AdminPage from './pages/Admin/AdminPage';
+// FIX: Corrected import path casing to match file system (Worker).
 import WorkerRegistrationPage from './pages/Worker/WorkerRegistrationPage';
+// FIX: Corrected import path casing to match file system (Worker).
 import WorkerDashboardPage from './pages/Worker/WorkerDashboardPage';
+// FIX: Corrected import path casing to match file system (Auth).
 import { LoginPage } from './pages/Auth/LoginPage';
+// FIX: Corrected import path casing to match file system (Auth).
 import RegisterPage from './pages/Auth/RegisterPage';
 import WorkerApp from './pages/WorkerApp';
 

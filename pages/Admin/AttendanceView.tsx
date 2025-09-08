@@ -63,6 +63,18 @@ export const AttendanceView = ({ employees, attendance, onEditEmployee, onUpdate
         }, {});
     }, [attendance]);
 
+    useEffect(() => {
+        // After adding a new record, if a date was stored, open the list view for that date.
+        if (dateForNewRecord && !isAddModalOpen) {
+            const dateStr = dateForNewRecord.toISOString().split('T')[0];
+            const records = attendanceByDate[dateStr] || [];
+            if (records.length > 0) {
+                setSelectedDateRecords(records);
+                setDateForNewRecord(null); // Reset trigger
+            }
+        }
+    }, [attendanceByDate, dateForNewRecord, isAddModalOpen]);
+
     const closeListModal = () => {
         setSelectedDateRecords(null);
         setIsDeleteMode(false);
@@ -93,7 +105,7 @@ export const AttendanceView = ({ employees, attendance, onEditEmployee, onUpdate
                 }
             }
         }
-    }, [attendanceByDate]);
+    }, [attendanceByDate, selectedDateRecords]);
 
 
     const handleDayClick = (day: number) => {
@@ -101,7 +113,7 @@ export const AttendanceView = ({ employees, attendance, onEditEmployee, onUpdate
         const month = currentDate.getMonth();
         const clickedDate = new Date(year, month, day);
         setCurrentDate(clickedDate);
-        const dateStr = `\${year}-\${String(month + 1).padStart(2, '0')}-\${String(day).padStart(2, '0')}`;
+        const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
         const records = attendanceByDate[dateStr] || [];
 
         if (isWorker) {
@@ -130,15 +142,17 @@ export const AttendanceView = ({ employees, attendance, onEditEmployee, onUpdate
         const status = formData.get('status') as AttendanceStatus;
 
         const getTimeFromForm = (namePrefix: string) => {
-            const hour = formData.get(`\${namePrefix}Hour`) as string;
-            const minute = formData.get(`\${namePrefix}Minute`) as string;
-            return (hour && hour !== '--' && minute && minute !== '--') ? `\${hour}:\${minute}` : null;
+            const hour = formData.get(`${namePrefix}Hour`) as string;
+            const minute = formData.get(`${namePrefix}Minute`) as string;
+            return (hour && hour !== '--' && minute && minute !== '--') ? `${hour}:${minute}` : null;
         };
 
         const clockIn = getTimeFromForm('clockIn');
         const clockOut = getTimeFromForm('clockOut');
         const breakStart = getTimeFromForm('breakStart');
         const breakEnd = getTimeFromForm('breakEnd');
+        const awayStart = getTimeFromForm('awayStart');
+        const awayEnd = getTimeFromForm('awayEnd');
 
         const employee = employees.find(e => e.id === employeeId);
         if (!employee) return;
@@ -152,6 +166,8 @@ export const AttendanceView = ({ employees, attendance, onEditEmployee, onUpdate
             clockIn,
             breakStart,
             breakEnd,
+            awayStart,
+            awayEnd,
             clockOut,
             workHours,
             status,
@@ -159,7 +175,6 @@ export const AttendanceView = ({ employees, attendance, onEditEmployee, onUpdate
         
         onAddAttendance(newRecordData);
         setIsAddModalOpen(false);
-        setDateForNewRecord(null);
     };
     
     const handleAddFromList = () => {
@@ -185,7 +200,7 @@ export const AttendanceView = ({ employees, attendance, onEditEmployee, onUpdate
                 return { ...prev, [name]: null };
             }
     
-            const newTime = `\${h || '00'}:\${m || '00'}`;
+            const newTime = `${h || '00'}:${m || '00'}`;
             return { ...prev, [name]: newTime };
         });
     };
@@ -271,11 +286,11 @@ export const AttendanceView = ({ employees, attendance, onEditEmployee, onUpdate
 
         const calendarDays = [];
         for (let i = 0; i < firstDayOfMonth; i++) {
-            calendarDays.push(<div key={`empty-\${i}`} className="border-r border-b bg-slate-50"></div>);
+            calendarDays.push(<div key={`empty-${i}`} className="border-r border-b bg-slate-50"></div>);
         }
 
         for (let day = 1; day <= daysInMonth; day++) {
-            const dateStr = `\${year}-\${String(month + 1).padStart(2, '0')}-\${String(day).padStart(2, '0')}`;
+            const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
             const records = attendanceByDate[dateStr] || [];
             
             calendarDays.push(
@@ -303,13 +318,13 @@ export const AttendanceView = ({ employees, attendance, onEditEmployee, onUpdate
         const totalCells = firstDayOfMonth + daysInMonth;
         const remainingCells = (7 - (totalCells % 7)) % 7;
         for (let i=0; i < remainingCells; i++) {
-            calendarDays.push(<div key={`empty-end-\${i}`} className="border-r border-b bg-slate-50"></div>);
+            calendarDays.push(<div key={`empty-end-${i}`} className="border-r border-b bg-slate-50"></div>);
         }
 
         return (
             <div className="grid grid-cols-7 border-t border-l">
                 {['일', '월', '화', '수', '목', '금', '토'].map((day, index) => (
-                    <div key={day} className={`text-center font-bold p-2 border-r border-b bg-slate-100 \${index === 0 ? 'text-red-500' : ''} \${index === 6 ? 'text-blue-500' : ''}`}>{day}</div>
+                    <div key={day} className={`text-center font-bold p-2 border-r border-b bg-slate-100 ${index === 0 ? 'text-red-500' : ''} ${index === 6 ? 'text-blue-500' : ''}`}>{day}</div>
                 ))}
                 {calendarDays}
             </div>
@@ -321,15 +336,15 @@ export const AttendanceView = ({ employees, attendance, onEditEmployee, onUpdate
         const dayRecords = attendance.filter(rec => rec.date === dateStr);
         const activeEmployees = employees.filter(e => e.status === '재직');
     
-        const hourHeight = 50;
+        const hourHeight = 40;
         const timeToDecimal = (timeStr: string | null): number => {
             if (!timeStr) return 0;
             const [h, m] = timeStr.split(':').map(Number);
             return h + m / 60;
         };
         
-        const gridTemplateColumns = `repeat(\${activeEmployees.length}, minmax(90px, 1fr))`;
-        const minWidth = `\${activeEmployees.length * 90}px`;
+        const gridTemplateColumns = `repeat(${activeEmployees.length}, minmax(90px, 1fr))`;
+        const minWidth = `${activeEmployees.length * 90}px`;
     
         return (
             <div className="border rounded-lg overflow-hidden bg-white">
@@ -356,7 +371,7 @@ export const AttendanceView = ({ employees, attendance, onEditEmployee, onUpdate
                         <div className="flex">
                             <div className="w-16 text-center text-xs shrink-0 sticky left-0 bg-slate-50 z-20">
                                 {Array.from({ length: 24 }).map((_, hour) => (
-                                    <div key={hour} style={{ height: `\${hourHeight}px` }} className="border-b border-r flex items-center justify-center text-slate-500">
+                                    <div key={hour} style={{ height: `${hourHeight}px` }} className="border-b border-r flex items-center justify-center text-slate-500">
                                         {String(hour).padStart(2, '0')}:00
                                     </div>
                                 ))}
@@ -365,7 +380,7 @@ export const AttendanceView = ({ employees, attendance, onEditEmployee, onUpdate
                                 {activeEmployees.map(employee => (
                                     <div key={employee.id} className="relative border-r" onClick={isWorker ? undefined : () => handleEmptyCellClick(employee.id)}>
                                         {Array.from({ length: 24 }).map((_, hour) => (
-                                            <div key={hour} style={{ height: `\${hourHeight}px` }} className="border-b"></div>
+                                            <div key={hour} style={{ height: `${hourHeight}px` }} className="border-b"></div>
                                         ))}
                                         {dayRecords.filter(rec => rec.employeeId === employee.id).map(rec => {
                                             const startDecimal = timeToDecimal(rec.clockIn);
@@ -374,7 +389,7 @@ export const AttendanceView = ({ employees, attendance, onEditEmployee, onUpdate
                                             if (startDecimal === 0 || endDecimal === 0 || endDecimal <= startDecimal) return null;
                                             
                                             const employeeForColor = employees.find(e => e.id === rec.employeeId);
-                                            const bgColor = employeeForColor?.color ? `\${employeeForColor.color}E6` : '#eff6ff';
+                                            const bgColor = employeeForColor?.color ? `${employeeForColor.color}E6` : '#eff6ff';
                                             const borderColor = employeeForColor?.color || '#60a5fa';
                                             const textColor = getTextColorForBackground(employeeForColor?.color);
             
@@ -392,16 +407,16 @@ export const AttendanceView = ({ employees, attendance, onEditEmployee, onUpdate
                                                         <React.Fragment key={rec.id}>
                                                             <div
                                                                 onClick={(e) => { e.stopPropagation(); if (!isWorker) setRecordForDetail(rec); }}
-                                                                className={`absolute p-1 text-xs rounded-t border-l-4 overflow-hidden \${!isWorker && 'cursor-pointer'}`}
-                                                                style={{ top: `\${top1}px`, height: `\${height1}px`, left: '2px', right: '2px', backgroundColor: bgColor, borderColor: borderColor, color: textColor }}
+                                                                className={`absolute p-1 text-xs rounded-t border-l-4 overflow-hidden ${!isWorker && 'cursor-pointer'}`}
+                                                                style={{ top: `${top1}px`, height: `${height1}px`, left: '2px', right: '2px', backgroundColor: bgColor, borderColor: borderColor, color: textColor }}
                                                             >
                                                                 <p className="font-semibold">{rec.clockIn} - {rec.clockOut}</p>
-                                                                <p className={`font-medium \${rec.status === AttendanceStatus.LATE ? 'text-red-700 font-bold' : ''}`}>{rec.status}</p>
+                                                                <p className={`font-medium ${rec.status === AttendanceStatus.LATE ? 'text-red-700 font-bold' : ''}`}>{rec.status}</p>
                                                             </div>
                                                              <div
                                                                 onClick={(e) => { e.stopPropagation(); if (!isWorker) setRecordForDetail(rec); }}
-                                                                className={`absolute p-1 text-xs rounded-b border-l-4 overflow-hidden \${!isWorker && 'cursor-pointer'}`}
-                                                                style={{ top: `\${top2}px`, height: `\${height2}px`, left: '2px', right: '2px', backgroundColor: bgColor, borderColor: borderColor, color: textColor }}
+                                                                className={`absolute p-1 text-xs rounded-b border-l-4 overflow-hidden ${!isWorker && 'cursor-pointer'}`}
+                                                                style={{ top: `${top2}px`, height: `${height2}px`, left: '2px', right: '2px', backgroundColor: bgColor, borderColor: borderColor, color: textColor }}
                                                             />
                                                         </React.Fragment>
                                                     );
@@ -416,10 +431,10 @@ export const AttendanceView = ({ employees, attendance, onEditEmployee, onUpdate
                                                     key={rec.id}
                                                     onClick={(e) => { e.stopPropagation(); setRecordForDetail(rec); }}
                                                     className="absolute p-1 text-xs rounded cursor-pointer border-l-4 overflow-hidden"
-                                                    style={{ top: `\${top}px`, height: `\${height}px`, left: '2px', right: '2px', backgroundColor: bgColor, borderColor: borderColor, color: textColor }}
+                                                    style={{ top: `${top}px`, height: `${height}px`, left: '2px', right: '2px', backgroundColor: bgColor, borderColor: borderColor, color: textColor }}
                                                 >
                                                     <p className="font-semibold">{rec.clockIn} - {rec.clockOut}</p>
-                                                    <p className={`font-medium \${rec.status === AttendanceStatus.LATE ? 'text-red-700 font-bold' : ''}`}>{rec.status}</p>
+                                                    <p className={`font-medium ${rec.status === AttendanceStatus.LATE ? 'text-red-700 font-bold' : ''}`}>{rec.status}</p>
                                                 </div>
                                             );
                                         })}
@@ -452,11 +467,11 @@ export const AttendanceView = ({ employees, attendance, onEditEmployee, onUpdate
         <div className="col-span-1">
             <label className="block text-sm font-medium text-slate-700 mb-1">{label}</label>
             <div className="flex gap-2 items-center">
-                <select name={`\${namePrefix}Hour`} defaultValue="00" className="w-full bg-white px-3 py-2 border border-slate-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                <select name={`${namePrefix}Hour`} defaultValue="--" className="w-full bg-white px-3 py-2 border border-slate-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
                     {hours.map(h => <option key={h} value={h}>{h}</option>)}
                 </select>
                 <span className="shrink-0">시</span>
-                <select name={`\${namePrefix}Minute`} defaultValue="00" className="w-full bg-white px-3 py-2 border border-slate-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                <select name={`${namePrefix}Minute`} defaultValue="--" className="w-full bg-white px-3 py-2 border border-slate-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
                     {minutes.map(m => <option key={m} value={m}>{m}</option>)}
                 </select>
                 <span className="shrink-0">분</span>
@@ -493,6 +508,7 @@ export const AttendanceView = ({ employees, attendance, onEditEmployee, onUpdate
 
     return(
         <>
+            {!isWorker && <h2 className="text-2xl font-bold mb-4">근태 관리</h2>}
             <div className="space-y-4 pb-20">
                 <Card>
                     <CalendarHeader 
@@ -538,7 +554,7 @@ export const AttendanceView = ({ employees, attendance, onEditEmployee, onUpdate
                                             {selectedDateRecords.map(rec => (
                                                 <tr
                                                     key={rec.id}
-                                                    className={`border-b \${!isDeleteMode ? 'hover:bg-slate-50 cursor-pointer' : ''}`}
+                                                    className={`border-b ${!isDeleteMode ? 'hover:bg-slate-50 cursor-pointer' : ''}`}
                                                     onClick={!isDeleteMode ? () => { setRecordForDetail(rec); setSelectedDateRecords(null); } : undefined}
                                                 >
                                                     {isDeleteMode && (
@@ -558,8 +574,8 @@ export const AttendanceView = ({ employees, attendance, onEditEmployee, onUpdate
                                                     </td>
                                                     <td className="p-3">{rec.clockIn || '-'}</td>
                                                     <td className="p-3">{rec.clockOut || '-'}</td>
-                                                    <td className="p-3">{rec.workHours > 0 ? `\${rec.workHours}시간` : '-'}</td>
-                                                    <td className={`p-3 font-medium \${rec.status === AttendanceStatus.LATE ? 'text-red-600' : ''}`}>{rec.status}</td>
+                                                    <td className="p-3">{rec.workHours > 0 ? `${rec.workHours}시간` : '-'}</td>
+                                                    <td className={`p-3 font-medium ${rec.status === AttendanceStatus.LATE ? 'text-red-600' : ''}`}>{rec.status}</td>
                                                 </tr>
                                             ))}
                                         </tbody>
@@ -619,6 +635,8 @@ export const AttendanceView = ({ employees, attendance, onEditEmployee, onUpdate
                                 <TimeSelectGroup label="퇴근 시간" namePrefix="clockOut" />
                                 <TimeSelectGroup label="휴게 시작" namePrefix="breakStart" />
                                 <TimeSelectGroup label="휴게 종료" namePrefix="breakEnd" />
+                                <TimeSelectGroup label="외근 시작" namePrefix="awayStart" />
+                                <TimeSelectGroup label="외근 종료" namePrefix="awayEnd" />
                                  <div className="col-span-2">
                                      <label htmlFor="status" className="block text-sm font-medium text-slate-700 mb-1">상태</label>
                                      <select id="status" name="status" defaultValue={AttendanceStatus.NORMAL} className="w-full bg-white px-3 py-2 border border-slate-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
@@ -639,6 +657,7 @@ export const AttendanceView = ({ employees, attendance, onEditEmployee, onUpdate
                     onClose={() => { setRecordForDetail(null); setIsEditingAttendance(false); }}
                     title={isEditingAttendance ? "근태 기록 수정" : "근태 기록 상세"}
                     size="lg"
+                    titleAlign="center"
                 >
                     {recordForDetail && employeeForDetail && (
                         !isEditingAttendance ? (
@@ -651,18 +670,20 @@ export const AttendanceView = ({ employees, attendance, onEditEmployee, onUpdate
                                             <DetailItem label="직급" value={employeeForDetail.position} />
                                             <DetailItem label="고용형태" value={employeeForDetail.employmentType} />
                                             <DetailItem label="급여형태" value={employeeForDetail.payType} />
-                                            <DetailItem label="급여" value={`\${employeeForDetail.payRate.toLocaleString()}원`} />
+                                            <DetailItem label="급여" value={`${employeeForDetail.payRate.toLocaleString()}원`} />
                                         </dl>
                                     </div>
                                     <div>
                                         <h4 className="font-bold text-lg mb-3 border-b pb-2">근태 기록</h4>
                                         <dl className="grid grid-cols-2 md:grid-cols-3 gap-x-4 gap-y-4">
-                                            <DetailItem label="예정 스케줄" value="-" />
                                             <DetailItem label="출근 시간" value={recordForDetail.clockIn} />
                                             <DetailItem label="퇴근 시간" value={recordForDetail.clockOut} />
                                             <DetailItem label="휴게 시작" value={recordForDetail.breakStart} />
                                             <DetailItem label="휴게 종료" value={recordForDetail.breakEnd} />
-                                            <DetailItem label="총 근무" value={`\${recordForDetail.workHours} 시간`} />
+                                            <DetailItem label="외근 시작" value={recordForDetail.awayStart} />
+                                            <DetailItem label="외근 종료" value={recordForDetail.awayEnd} />
+                                            <DetailItem label="예정 근무 시간" value="-" />
+                                            <DetailItem label="총 근무 시간" value={`${recordForDetail.workHours} 시간`} />
                                             <DetailItem label="상태" value={<span className={recordForDetail.status === AttendanceStatus.LATE ? 'text-red-600 font-bold' : ''}>{recordForDetail.status}</span>} />
                                         </dl>
                                     </div>
@@ -689,7 +710,8 @@ export const AttendanceView = ({ employees, attendance, onEditEmployee, onUpdate
                                     <EditTimeSelectGroup label="퇴근 시간" name="clockOut" value={editedData?.clockOut} />
                                     <EditTimeSelectGroup label="휴게 시작" name="breakStart" value={editedData?.breakStart} />
                                     <EditTimeSelectGroup label="휴게 종료" name="breakEnd" value={editedData?.breakEnd} />
-
+                                    <EditTimeSelectGroup label="외근 시작" name="awayStart" value={editedData?.awayStart} />
+                                    <EditTimeSelectGroup label="외근 종료" name="awayEnd" value={editedData?.awayEnd} />
                                     <div className="col-span-2">
                                          <label htmlFor="statusEdit" className="block text-sm font-medium text-slate-700 mb-1">상태</label>
                                          <select 

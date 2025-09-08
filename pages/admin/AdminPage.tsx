@@ -2,6 +2,10 @@
 
 
 
+
+
+
+
 import React, { useState, useMemo, useCallback, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Employee, Schedule, AttendanceRecord } from '../../types';
@@ -10,12 +14,12 @@ import { Modal, Button, Card } from '../../components/ui';
 import { AppHeader } from '../../components/admin/AppHeader';
 import { EmployeeInfoForm } from '../../components/admin/EmployeeInfoForm';
 import type { EmployeeFormData } from '../../components/admin/EmployeeInfoForm';
-// FIX: Corrected import paths to resolve casing conflicts. The components are in the parent 'Admin' directory.
-import { DashboardView } from '../Admin/DashboardView';
-import { EmployeeView } from '../Admin/EmployeeView';
-import { AttendanceView } from '../Admin/AttendanceView';
-import { ScheduleView } from '../Admin/ScheduleView';
-import { QRView } from '../Admin/QRView';
+// FIX: Corrected import paths to resolve casing conflicts. The components are in the same 'Admin' directory.
+import { DashboardView } from './DashboardView';
+import { EmployeeView } from './EmployeeView';
+import { AttendanceView } from './AttendanceView';
+import { ScheduleView } from './ScheduleView';
+import { QRView } from './QRView';
 import { getRandomColor } from '../../utils';
 
 type Account = { id: string, password?: string, companyCode: string };

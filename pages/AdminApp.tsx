@@ -1,9 +1,6 @@
 
 
 
-
-
-
 import React, { useState, useMemo, useCallback, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { NewWorkerRequest, Employee, Schedule, AttendanceRecord } from '../types';
@@ -12,7 +9,7 @@ import { Modal, Button, Card } from '../components/ui';
 import { AppHeader } from '../components/admin/AppHeader';
 import { EmployeeInfoForm } from '../components/admin/EmployeeInfoForm';
 import type { EmployeeFormData } from '../components/admin/EmployeeInfoForm';
-// FIX: Corrected import paths for admin view components to use 'Admin' with PascalCase.
+// FIX: Corrected import paths for admin view components to use PascalCase 'Admin'.
 import { DashboardView } from './Admin/DashboardView';
 import { EmployeeView } from './Admin/EmployeeView';
 import { AttendanceView } from './Admin/AttendanceView';
@@ -211,8 +208,7 @@ const AdminApp = () => {
 
     const NavItem = ({ icon, label, pageName }: { icon: string, label: string, pageName: string }) => (
         <button 
-            onClick={pageName === 'logout' ? handleLogout : () => handleNavigate(pageName)} 
-// FIX: Changed single quotes to backticks for template literal.
+            onClick={pageName === 'logout' ? handleLogout : () => handleNavigate(pageName)}
             className={`flex items-center gap-3 px-3 py-2.5 rounded-md w-full text-left transition-colors ${currentPage === pageName ? 'bg-blue-600 text-white' : 'hover:bg-slate-200'}`}
         >
             <span className="w-5 text-center text-xl">{icon}</span>
@@ -265,7 +261,6 @@ const AdminApp = () => {
             )}
 
             {/* Sidebar */}
-            {/* FIX: Changed single quotes to backticks for template literal. */}
             <aside className={`fixed top-0 left-0 h-full z-30 w-64 bg-white p-4 flex flex-col justify-between border-r transition-transform duration-300 ease-in-out ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
                 <div>
                     <AppHeader onMenuClick={() => setIsSidebarOpen(false)} isSidebarContext={true} />
@@ -319,7 +314,6 @@ const AdminApp = () => {
                            isNew={employeeModalMode === 'new'}
                         />
                     </div>
-                    {/* FIX: Changed single quotes to backticks for template literal. */}
                     <div className={`flex-shrink-0 flex ${employeeModalMode === 'new' ? 'justify-center' : 'justify-end'} gap-3 pt-4 mt-6 border-t`}>
                         {employeeModalMode === 'new' ? (
                             <>

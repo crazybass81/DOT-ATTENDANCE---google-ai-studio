@@ -5,45 +5,33 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { Employee, EmployeeAppStatus, AttendanceRecord, AttendanceStatus } from '../../types';
 import { Button, Card, Modal } from '../../components/ui';
 import { calculateWorkHours } from '../../utils';
-// FIX: Corrected import path for admin view components to use 'Admin' with PascalCase.
 import { AttendanceView } from '../Admin/AttendanceView';
 
-
-const ActionButton = ({ status, onClick }: { status: 'none' | 'working' | 'break' | 'done' | 'away', onClick: (newStatus: EmployeeAppStatus) => void }) => {
-    const config = {
-        none: { text: '출근하기', icon: '💼', color: 'bg-green-600 hover:bg-green-700', action: EmployeeAppStatus.WORKING },
-        working: { text: '업무 중', icon: '🧑‍💻', color: 'bg-blue-600', action: null },
-        break: { text: '휴식 중', icon: '☕', color: 'bg-yellow-500', action: null },
-        done: { text: '업무 종료', icon: '🎉', color: 'bg-slate-500', action: null },
-        away: { text: '외근 중', icon: '🚗', color: 'bg-purple-600', action: null },
+const StatusIndicator = ({ status }: { status: EmployeeAppStatus }) => {
+    const statusConfig = {
+        [EmployeeAppStatus.NONE]: { text: '업무 시작 전', emoji: '☀️', className: 'bg-slate-400 text-white' },
+        [EmployeeAppStatus.WORKING]: { text: '업무 중', emoji: '💼', className: 'bg-green-500 text-white' },
+        [EmployeeAppStatus.BREAK]: { text: '휴식 중', emoji: '☕', className: 'bg-yellow-500 text-white' },
+        [EmployeeAppStatus.DONE]: { text: '업무 종료', emoji: '🏠', className: 'bg-gray-600 text-white' },
+        [EmployeeAppStatus.AWAY]: { text: '외근 중', emoji: '🚗', className: 'bg-purple-500 text-white' },
     };
 
-    const { text, icon, color, action } = config[status];
-
-    const handleClick = () => {
-        if (action) {
-            onClick(action);
-        }
-    };
+    const config = statusConfig[status] || { text: '알 수 없음', emoji: '❓', className: 'bg-slate-400 text-white' };
 
     return (
-        <button
-            onClick={handleClick}
-            disabled={!action}
-            className={`w-48 h-48 rounded-full text-white flex flex-col items-center justify-center shadow-lg transition-transform duration-300 transform hover:scale-105 ${color} ${!action ? 'cursor-default hover:scale-100' : ''}`}
-        >
-            <span className="text-5xl" role="img" aria-hidden="true">{icon}</span>
-            <span className="mt-2 text-xl font-bold">{text}</span>
-        </button>
+        <div className="flex justify-center items-center my-6">
+            <div className={`w-56 h-56 rounded-full flex flex-col items-center justify-center p-4 text-center font-bold shadow-lg ${config.className}`}>
+                <span className="text-7xl mb-4" role="img" aria-hidden="true">{config.emoji}</span>
+                <span className="text-3xl leading-tight">{config.text}</span>
+            </div>
+        </div>
     );
 };
 
-
-const DashboardContent = ({ employee, status, workLog, onStatusChange }: {
+const DashboardContent = ({ employee, status, workLog }: {
     employee: Employee;
     status: EmployeeAppStatus;
     workLog: { label: string; time: string }[];
-    onStatusChange: (newStatus: EmployeeAppStatus) => void;
 }) => {
     const [currentTime, setCurrentTime] = useState(new Date());
 
@@ -51,50 +39,15 @@ const DashboardContent = ({ employee, status, workLog, onStatusChange }: {
         const timer = setInterval(() => setCurrentTime(new Date()), 1000);
         return () => clearInterval(timer);
     }, []);
-
-    const getStatusText = () => {
-        switch(status) {
-            case EmployeeAppStatus.NONE: return '업무 시작 전';
-            case EmployeeAppStatus.WORKING: return '업무 중';
-            case EmployeeAppStatus.BREAK: return '휴식 중';
-            case EmployeeAppStatus.DONE: return '업무 종료';
-            case EmployeeAppStatus.AWAY: return '외근 중';
-            default: return '알 수 없음';
-        }
-    };
-
-    const renderActionButtons = () => {
-        switch (status) {
-            case EmployeeAppStatus.WORKING:
-            case EmployeeAppStatus.AWAY:
-                return (
-                    <>
-                        <Button onClick={() => onStatusChange(EmployeeAppStatus.BREAK)} className="w-full !bg-yellow-500 hover:!bg-yellow-600 text-lg py-3">휴식 시작</Button>
-                        <Button onClick={() => onStatusChange(EmployeeAppStatus.DONE)} className="w-full !bg-red-600 hover:!bg-red-700 text-lg py-3">퇴근하기</Button>
-                    </>
-                );
-            case EmployeeAppStatus.BREAK:
-                 return <Button onClick={() => onStatusChange(EmployeeAppStatus.NONE)} className="w-full !bg-blue-600 hover:!bg-blue-700 text-lg py-3">▶️ 업무 복귀</Button>;
-            default:
-                return null;
-        }
-    };
     
     return (
         <div className="max-w-md mx-auto">
              <div className="space-y-6">
                 <div className="text-center">
                     <p className="text-lg text-slate-600">{employee.name}님, 안녕하세요!</p>
-                    <p className="text-2xl font-bold text-slate-800">{getStatusText()}</p>
-                </div>
-                
-                <div className="flex justify-center items-center my-8">
-                    <ActionButton status={status.toLowerCase() as 'none' | 'working' | 'break' | 'done' | 'away'} onClick={onStatusChange} />
                 </div>
 
-                <div className="space-y-3 px-4">
-                    {renderActionButtons()}
-                </div>
+                <StatusIndicator status={status} />
 
                 <Card className="!mt-8">
                     <div className="text-center mb-4">
@@ -213,65 +166,85 @@ const WorkerDashboardPage = ({ allEmployees, allAttendance, setAttendance }: Wor
     
     const handleRecordAction = (action: EmployeeAppStatus, customLabel?: string) => {
         if (!employee) return;
-        
+
+        if (employee.status !== '재직') {
+            alert('재직 중인 근로자만 근태 기록을 할 수 있습니다.');
+            return;
+        }
+
         const currentDateStr = new Date().toISOString().split('T')[0];
         const currentTimeStr = new Date().toLocaleTimeString('ko-KR', { hour12: false, hour: '2-digit', minute: '2-digit' });
 
-        let recordIndex = allAttendance.findIndex(r => r.employeeId === employee.id && r.date === currentDateStr);
-        let updatedAttendance = [...allAttendance];
+        setAttendance(prevAttendance => {
+            const updatedAttendance = [...prevAttendance];
+            let recordIndex = updatedAttendance.findIndex(r => r.employeeId === employee.id && r.date === currentDateStr);
 
-        if (recordIndex === -1) {
-            if (action === EmployeeAppStatus.WORKING) {
-                const newRecord: AttendanceRecord = {
-                    id: Date.now(),
-                    employeeId: employee.id,
-                    employeeName: employee.name,
-                    date: currentDateStr,
-                    clockIn: currentTimeStr,
-                    breakStart: null,
-                    breakEnd: null,
-                    clockOut: null,
-                    workHours: 0,
-                    status: AttendanceStatus.NORMAL,
-                    isModified: false,
-                };
-                updatedAttendance.push(newRecord);
+            if (recordIndex === -1) {
+                // No record for today, create one if clocking in
+                if (action === EmployeeAppStatus.WORKING) {
+                    const newRecord: AttendanceRecord = {
+                        id: Date.now(),
+                        employeeId: employee.id,
+                        employeeName: employee.name,
+                        date: currentDateStr,
+                        clockIn: currentTimeStr,
+                        breakStart: null,
+                        breakEnd: null,
+                        awayStart: null,
+                        awayEnd: null,
+                        clockOut: null,
+                        workHours: 0,
+                        status: AttendanceStatus.NORMAL,
+                        isModified: false,
+                    };
+                    updatedAttendance.push(newRecord);
+                } else {
+                    alert('먼저 출근 기록을 해주세요.');
+                }
             } else {
-                alert('먼저 출근 기록을 해주세요.');
-                return;
-            }
-        } else {
-            const recordToUpdate = { ...updatedAttendance[recordIndex] };
+                // Record for today exists, update it
+                const recordToUpdate = { ...updatedAttendance[recordIndex] };
 
-            switch(action) {
-                case EmployeeAppStatus.WORKING: // Already clocked in
-                    break;
-                case EmployeeAppStatus.BREAK:
-                    if (!recordToUpdate.breakStart) {
-                        recordToUpdate.breakStart = currentTimeStr;
-                    }
-                    break;
-                case EmployeeAppStatus.NONE: // Return from break or away
-                    if (recordToUpdate.breakStart && !recordToUpdate.breakEnd) {
-                        recordToUpdate.breakEnd = currentTimeStr;
-                    } // Logic for returning from 'away' can be added here
-                    break;
-                case EmployeeAppStatus.DONE:
-                    recordToUpdate.clockOut = currentTimeStr;
-                    recordToUpdate.workHours = calculateWorkHours(
-                        recordToUpdate.clockIn,
-                        recordToUpdate.clockOut,
-                        recordToUpdate.breakStart,
-                        recordToUpdate.breakEnd
-                    );
-                    break;
-                case EmployeeAppStatus.AWAY:
-                    // Could add logic for away status if needed
-                    break;
+                switch(action) {
+                    case EmployeeAppStatus.BREAK:
+                        if (recordToUpdate.clockIn && !recordToUpdate.clockOut && !recordToUpdate.breakStart) {
+                             recordToUpdate.breakStart = currentTimeStr;
+                        }
+                        break;
+                    case EmployeeAppStatus.NONE: // This is used for returning from break or away
+                        if (customLabel === '외근 복귀') {
+                            if (recordToUpdate.awayStart && !recordToUpdate.awayEnd) {
+                                recordToUpdate.awayEnd = currentTimeStr;
+                            }
+                        } else { // Return from break
+                            if (recordToUpdate.breakStart && !recordToUpdate.breakEnd) {
+                                recordToUpdate.breakEnd = currentTimeStr;
+                            }
+                        }
+                        break;
+                    case EmployeeAppStatus.DONE:
+                        if (recordToUpdate.clockIn && !recordToUpdate.clockOut) {
+                            recordToUpdate.clockOut = currentTimeStr;
+                            recordToUpdate.workHours = calculateWorkHours(
+                                recordToUpdate.clockIn,
+                                recordToUpdate.clockOut,
+                                recordToUpdate.breakStart,
+                                recordToUpdate.breakEnd
+                            );
+                        }
+                        break;
+                    case EmployeeAppStatus.AWAY:
+                         if (recordToUpdate.clockIn && !recordToUpdate.clockOut && !recordToUpdate.awayStart) {
+                             recordToUpdate.awayStart = currentTimeStr;
+                        }
+                        break;
+                    case EmployeeAppStatus.WORKING:
+                        break;
+                }
+                updatedAttendance[recordIndex] = recordToUpdate;
             }
-            updatedAttendance[recordIndex] = recordToUpdate;
-        }
-        setAttendance(updatedAttendance);
+            return updatedAttendance;
+        });
     };
     
     const { derivedStatus, derivedWorkLog } = useMemo(() => {
@@ -284,22 +257,27 @@ const WorkerDashboardPage = ({ allEmployees, allAttendance, setAttendance }: Wor
 
         const log: { label: string; time: string }[] = [];
         if (todayRecord.clockIn) log.push({ label: '출근', time: todayRecord.clockIn });
+        if (todayRecord.awayStart) log.push({ label: '외근 시작', time: todayRecord.awayStart });
         if (todayRecord.breakStart) log.push({ label: '휴식 시작', time: todayRecord.breakStart });
         if (todayRecord.breakEnd) log.push({ label: '업무 복귀', time: todayRecord.breakEnd });
+        if (todayRecord.awayEnd) log.push({ label: '외근 복귀', time: todayRecord.awayEnd });
         if (todayRecord.clockOut) log.push({ label: '퇴근', time: todayRecord.clockOut });
         
         let status = EmployeeAppStatus.NONE;
         if (todayRecord.clockIn) {
             status = EmployeeAppStatus.WORKING;
+            if (todayRecord.awayStart && !todayRecord.awayEnd) {
+                status = EmployeeAppStatus.AWAY;
+            }
             if (todayRecord.breakStart && !todayRecord.breakEnd) {
                 status = EmployeeAppStatus.BREAK;
             }
             if (todayRecord.clockOut) {
-                status = EmployeeAppStatus.DONE;
+                status = EmployeeAppStatus.NONE;
             }
         }
         
-        return { derivedStatus: status, derivedWorkLog: log };
+        return { derivedStatus: status, derivedWorkLog: log.sort((a,b) => a.time.localeCompare(b.time)) };
     }, [allAttendance, employee]);
 
     const employeeAttendance = useMemo(() => {
@@ -341,7 +319,7 @@ const WorkerDashboardPage = ({ allEmployees, allAttendance, setAttendance }: Wor
      const renderContent = () => {
         if (!employee) return null;
         switch (currentPage) {
-            case 'dashboard': return <DashboardContent employee={employee} status={derivedStatus} workLog={derivedWorkLog} onStatusChange={handleRecordAction} />;
+            case 'dashboard': return <DashboardContent employee={employee} status={derivedStatus} workLog={derivedWorkLog} />;
             case 'schedule': return <PlaceholderContent title="스케줄 확인" />;
             case 'attendance': return (
                 <AttendanceView
@@ -357,7 +335,7 @@ const WorkerDashboardPage = ({ allEmployees, allAttendance, setAttendance }: Wor
             case 'paystub': return <PlaceholderContent title="급여 명세서" />;
             case 'profile': return <PlaceholderContent title="내 정보" />;
             case 'settings': return <PlaceholderContent title="환경 설정" />;
-            default: return <DashboardContent employee={employee} status={derivedStatus} workLog={derivedWorkLog} onStatusChange={handleRecordAction} />;
+            default: return <DashboardContent employee={employee} status={derivedStatus} workLog={derivedWorkLog} />;
         }
     };
     
@@ -419,7 +397,15 @@ const WorkerDashboardPage = ({ allEmployees, allAttendance, setAttendance }: Wor
                     <button onClick={() => setIsSidebarOpen(true)} className="text-2xl text-slate-600 mr-4">
                         <span role="img" aria-hidden="true">☰</span>
                     </button>
-                    <h1 className="text-xl font-bold text-red-700">DOT ATTENDANCE</h1>
+                    <h1 
+                        className="text-xl font-bold text-red-700 cursor-pointer"
+                        onClick={() => handleNavigate('dashboard')}
+                        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') handleNavigate('dashboard'); }}
+                        role="button"
+                        tabIndex={0}
+                    >
+                        DOT ATTENDANCE
+                    </h1>
                     <div className="flex-grow"></div>
                     <div className="text-sm text-right">
                         <p className="font-semibold">{employee.name}님</p>
@@ -427,9 +413,11 @@ const WorkerDashboardPage = ({ allEmployees, allAttendance, setAttendance }: Wor
                     </div>
                 </header>
                 <main className="flex-1 p-6">
-                    <h2 className="text-2xl font-bold mb-4">
-                       {pageTitles[currentPage]}
-                    </h2>
+                    {currentPage !== 'attendance' && (
+                        <h2 className="text-2xl font-bold mb-4">
+                           {pageTitles[currentPage]}
+                        </h2>
+                    )}
                     {renderContent()}
                 </main>
             </div>

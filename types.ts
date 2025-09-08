@@ -55,6 +55,8 @@ export interface AttendanceRecord {
     clockIn: string | null;
     breakStart: string | null;
     breakEnd: string | null;
+    awayStart: string | null;
+    awayEnd: string | null;
     clockOut: string | null;
     workHours: number;
     status: AttendanceStatus;

@@ -847,69 +847,6 @@ export const AdminLogin = ({ onLogin }: { onLogin: (account: { id: string, passw
                     <Link to="/" className="inline-block px-6 py-2.5 rounded-md font-semibold text-white bg-white/20 hover:bg-white/30 backdrop-blur-sm transition-colors text-sm">처음으로</Link>
                 </div>
             </div>
-        );
-    }
-
-    return (
-         <div className="relative min-h-screen overflow-hidden bg-slate-50">
-            <div className="absolute inset-0 z-0">
-                <div className="blob blob-admin-1"></div>
-                <div className="blob blob-admin-2"></div>
-                <div className="blob blob-admin-3"></div>
-                <div className="blob blob-admin-4"></div>
-                <div className="blob blob-admin-5"></div>
-            </div>
-
-            <div className="relative z-10 flex min-h-screen flex-col items-center justify-center p-4">
-                {renderContent()}
-            </div>
-            
-            <Modal 
-                isOpen={isFindIdPwModalOpen} 
-                onClose={() => setFindIdPwModalOpen(false)} 
-                title="아이디/비밀번호 찾기"
-            >
-                <div className="space-y-4">
-                    <p className="text-sm text-slate-600 bg-slate-100 p-3 rounded-md">
-                        계정 정보를 포함하여 아래 메일로 문의주시면 최대한 빠르게 답변드리겠습니다.
-                    </p>
-                    <form onSubmit={(e) => {
-                        e.preventDefault();
-                        setFindIdPwModalOpen(false);
-                    }}>
-                        <div className="space-y-4">
-                            <Input 
-                                label="받는 사람"
-                                id="dev-email"
-                                name="dev-email"
-                                type="email"
-                                value="developer@dot-attendance.com"
-                                disabled
-                                className="bg-slate-100"
-                            />
-                            <Input 
-                                label="회신받을 메일 주소" 
-                                id="find-email" 
-                                name="email" 
-                                type="email" 
-                                required 
-                                placeholder="example@company.com" 
-                            />
-                             <Textarea
-                                label="문의 내용"
-                                id="find-message"
-                                name="message"
-                                required
-                                placeholder="가입 시 입력한 이름, 회사명, 연락처 등을 입력해주세요."
-                            />
-                            <div className="flex justify-end gap-3 pt-4 border-t">
-                                <Button type="button" variant="secondary" onClick={() => setFindIdPwModalOpen(false)}>취소</Button>
-                                <Button type="submit">메일 보내기</Button>
-                            </div>
-                        </div>
-                    </form>
-                </div>
-            </Modal>
         </div>
     );
 };
