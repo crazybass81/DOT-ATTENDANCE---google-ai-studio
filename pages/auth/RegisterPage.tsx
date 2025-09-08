@@ -1,7 +1,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-// FIX: Corrected import path to resolve casing conflict and use standardized component.
-import { AdminRegisterForm } from './Auth/AdminRegisterForm';
+// FIX: Corrected import path to resolve casing conflict.
+import { AdminRegisterForm } from '../Auth/AdminRegisterForm';
 
 const RegisterPage = () => {
     const navigate = useNavigate();

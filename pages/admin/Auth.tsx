@@ -116,7 +116,7 @@ export const AdminRegister = ({ onBackToLogin }: { onBackToLogin: () => void }) 
     useEffect(() => {
         let interval: number | undefined;
         if (isCodeSent && timer > 0 && !isVerified) {
-            interval = setInterval(() => {
+            interval = window.setInterval(() => {
                 setTimer(prev => prev - 1);
             }, 1000);
         } else if (timer === 0) {

@@ -1,9 +1,4 @@
 
-
-
-
-
-
 import React, { useState } from 'react';
 import { NewWorkerRequest, Employee, AttendanceStatus, AttendanceRecord } from '../../types';
 import { Button, Card, Modal } from '../../components/ui';
@@ -18,10 +13,10 @@ export const DashboardView = ({ onNavigate, employees, attendance, onOpenEmploye
     const [isAddWidgetModalOpen, setAddWidgetModalOpen] = useState(false);
     const [isCostModalOpen, setIsCostModalOpen] = useState(false);
 
-    // Calculate attendance status
-    const today = new Date().toISOString().split('T')[0]; // Using mock date for consistency with MOCK_ATTENDANCE
+    // Calculate attendance status for today
+    const today = new Date().toISOString().split('T')[0];
     const activeEmployees = employees.filter(emp => emp.status === '재직');
-    const todaysAttendance = attendance.filter(att => att.date === '2024-08-10'); // Keep dashboard static for demo
+    const todaysAttendance = attendance.filter(att => att.date === today);
 
     const workingEmployees: Employee[] = [];
     const breakEmployees: Employee[] = [];
@@ -43,7 +38,7 @@ export const DashboardView = ({ onNavigate, employees, attendance, onOpenEmploye
         }
     });
 
-    // Calculate attendance issues dynamically
+    // Calculate attendance issues dynamically for today
     const lateEmployees = todaysAttendance
         .filter(att => att.status === AttendanceStatus.LATE)
         .map(att => employees.find(e => e.id === att.employeeId))
@@ -103,7 +98,7 @@ export const DashboardView = ({ onNavigate, employees, attendance, onOpenEmploye
             <div className="space-y-6 pb-20">
                 <Button onClick={() => onNavigate('employees')} className="w-full">근로자 찾기</Button>
                 <Card>
-                    <h3 className="font-bold text-lg mb-4">현재 근태 현황 (2024-08-10 기준)</h3>
+                    <h3 className="font-bold text-lg mb-4">현재 근태 현황</h3>
                     <div className="grid grid-cols-3 gap-4 text-center">
                         <button onClick={() => handleStatusClick('working')} className="bg-green-50 p-4 rounded-lg hover:bg-green-100 transition-colors focus:outline-none focus:ring-2 focus:ring-green-400">
                             <p className="text-sm text-slate-500">출근 <span role="img" aria-label="workers present">👥</span></p>

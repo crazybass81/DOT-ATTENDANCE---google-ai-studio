@@ -19,3 +19,24 @@ export const getRandomColor = () => {
     }
     return color;
 };
+
+export const calculateWorkHours = (clockIn: string | null, clockOut: string | null, breakStart: string | null, breakEnd: string | null): number => {
+    if (!clockIn || !clockOut) return 0;
+    
+    try {
+        const start = new Date(`1970-01-01T${clockIn}`);
+        const end = new Date(`1970-01-01T${clockOut}`);
+        let diff = (end.getTime() - start.getTime()) / (1000 * 60 * 60);
+        
+        if (breakStart && breakEnd) {
+            const breakS = new Date(`1970-01-01T${breakStart}`);
+            const breakE = new Date(`1970-01-01T${breakEnd}`);
+            if (breakE > breakS) {
+                diff -= (breakE.getTime() - breakS.getTime()) / (1000 * 60 * 60);
+            }
+        }
+        return parseFloat(Math.max(0, diff).toFixed(1));
+    } catch (e) {
+        return 0;
+    }
+};

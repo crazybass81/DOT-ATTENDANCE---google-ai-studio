@@ -1,12 +1,16 @@
 
+
+
+
 import React, { useState, useMemo, useCallback, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Employee, Schedule, AttendanceRecord } from '../../types';
-import { MOCK_EMPLOYEES_DATA, MOCK_SCHEDULES_DATA, MOCK_ATTENDANCE, STORE_DATA } from '../../data/mockData';
+import { STORE_DATA } from '../../data/mockData';
 import { Modal, Button, Card } from '../../components/ui';
 import { AppHeader } from '../../components/admin/AppHeader';
 import { EmployeeInfoForm } from '../../components/admin/EmployeeInfoForm';
 import type { EmployeeFormData } from '../../components/admin/EmployeeInfoForm';
+// FIX: Corrected import paths to resolve casing conflicts. The components are in the same 'Admin' directory.
 import { DashboardView } from './DashboardView';
 import { EmployeeView } from './EmployeeView';
 import { AttendanceView } from './AttendanceView';
@@ -16,17 +20,21 @@ import { getRandomColor } from '../../utils';
 
 type Account = { id: string, password?: string, companyCode: string };
 
-const AdminPage = () => {
+interface AdminPageProps {
+  employees: (Employee & { accountNumber?: string; contract?: string | null; bankAccountCopy?: string | null; })[];
+  setEmployees: React.Dispatch<React.SetStateAction<(Employee & { accountNumber?: string; contract?: string | null; bankAccountCopy?: string | null; })[]>>;
+  attendance: AttendanceRecord[];
+  setAttendance: React.Dispatch<React.SetStateAction<AttendanceRecord[]>>;
+}
+
+const AdminPage = ({ employees, setEmployees, attendance, setAttendance }: AdminPageProps) => {
     const navigate = useNavigate();
     const [isAuthenticated, setIsAuthenticated] = useState(false);
     const [loggedInAccount, setLoggedInAccount] = useState<Account | null>(null);
     const [currentPage, setCurrentPage] = useState('dashboard');
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
-    // Main data states
-    const [employees, setEmployees] = useState<(Employee & { accountNumber?: string; contract?: string | null; bankAccountCopy?: string | null; })[]>(MOCK_EMPLOYEES_DATA);
-    const [schedules, setSchedules] = useState(MOCK_SCHEDULES_DATA);
-    const [attendance, setAttendance] = useState<AttendanceRecord[]>(MOCK_ATTENDANCE);
+    // Main data states are now passed as props
     
     // Store management states
     const [currentStore, setCurrentStore] = useState('');
@@ -46,11 +54,6 @@ const AdminPage = () => {
         if (!currentStoreId) return employees;
         return employees.filter(e => e.storeId === currentStoreId);
     }, [employees, currentStoreId]);
-
-    const filteredSchedules = useMemo(() => {
-        if (!currentStoreId) return schedules;
-        return schedules.filter(s => s.storeId === currentStoreId);
-    }, [schedules, currentStoreId]);
 
     const filteredAttendance = useMemo(() => {
         if (!currentStoreId) return attendance;
@@ -104,10 +107,6 @@ const AdminPage = () => {
         setCurrentPage(page);
         setIsSidebarOpen(false);
     }, []);
-
-     const handleSchedulesChange = (updatedSchedules: Schedule[]) => {
-        setSchedules(updatedSchedules);
-    };
     
     const handleOpenEmployeeModal = useCallback((employee: Employee, mode: 'edit' | 'new') => {
         if (mode === 'edit') {

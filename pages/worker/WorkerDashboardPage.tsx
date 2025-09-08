@@ -2,15 +2,15 @@
 
 
 
-
-
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { MOCK_EMPLOYEES_DATA } from '../data/mockData';
-import { Employee, EmployeeAppStatus } from '../types';
-import { Button, Card, Modal } from '../components/ui';
+import { MOCK_EMPLOYEES_DATA } from '../../data/mockData';
+import { Employee, EmployeeAppStatus, AttendanceRecord, AttendanceStatus } from '../../types';
+import { Button, Card, Modal } from '../../components/ui';
+import { calculateWorkHours } from '../../utils';
 // FIX: Corrected import path for admin view components to use 'Admin' with PascalCase.
-import { AttendanceView } from './Admin/AttendanceView';
+import { AttendanceView } from '../Admin/AttendanceView';
+
 
 const ActionButton = ({ status, onClick }: { status: 'none' | 'working' | 'break' | 'done' | 'away', onClick: (newStatus: EmployeeAppStatus) => void }) => {
     const config = {
@@ -77,7 +77,7 @@ const DashboardContent = ({ employee, status, workLog, onStatusChange }: {
                     </>
                 );
             case EmployeeAppStatus.BREAK:
-                 return <Button onClick={() => onStatusChange(EmployeeAppStatus.NONE)} className="w-full !bg-blue-600 hover:!bg-blue-700 text-lg py-3">업무 복귀</Button>;
+                 return <Button onClick={() => onStatusChange(EmployeeAppStatus.NONE)} className="w-full !bg-blue-600 hover:!bg-blue-700 text-lg py-3">▶️ 업무 복귀</Button>;
             default:
                 return null;
         }
@@ -177,7 +177,13 @@ const RecordContent = ({ onRecord, onClose }: { onRecord: (newStatus: EmployeeAp
     );
 };
 
-const WorkerDashboard = () => {
+interface WorkerDashboardPageProps {
+  allEmployees: Employee[];
+  allAttendance: AttendanceRecord[];
+  setAttendance: React.Dispatch<React.SetStateAction<AttendanceRecord[]>>;
+}
+
+const WorkerDashboardPage = ({ allEmployees, allAttendance, setAttendance }: WorkerDashboardPageProps) => {
     const { storeId } = useParams();
     const navigate = useNavigate();
     const [employee, setEmployee] = useState<Employee | null>(null);
@@ -185,8 +191,6 @@ const WorkerDashboard = () => {
     const [currentPage, setCurrentPage] = useState('dashboard');
     const [switchedFromAdmin, setSwitchedFromAdmin] = useState(false);
     
-    const [status, setStatus] = useState<EmployeeAppStatus>(EmployeeAppStatus.NONE);
-    const [workLog, setWorkLog] = useState<{ label: string; time: string }[]>([]);
     const [isRecordModalOpen, setIsRecordModalOpen] = useState(false);
 
     useEffect(() => {
@@ -196,7 +200,7 @@ const WorkerDashboard = () => {
             return;
         }
 
-        const foundEmployee = MOCK_EMPLOYEES_DATA.find(emp => emp.id === parseInt(employeeId, 10));
+        const foundEmployee = allEmployees.find(emp => emp.id === parseInt(employeeId, 10));
         if (foundEmployee) {
             setEmployee(foundEmployee);
         } else {
@@ -208,31 +212,103 @@ const WorkerDashboard = () => {
         if(adminData) {
             setSwitchedFromAdmin(true);
         }
-    }, [storeId, navigate]);
+    }, [storeId, navigate, allEmployees]);
     
-    const handleStatusChange = (newStatus: EmployeeAppStatus, customLabel?: string) => {
-        const time = new Date().toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-        let label = customLabel || '';
+    const handleRecordAction = (action: EmployeeAppStatus, customLabel?: string) => {
+        if (!employee) return;
+        
+        const currentDateStr = new Date().toISOString().split('T')[0];
+        const currentTimeStr = new Date().toLocaleTimeString('ko-KR', { hour12: false, hour: '2-digit', minute: '2-digit' });
 
-        if (newStatus === EmployeeAppStatus.NONE) {
-             label = customLabel || '업무 복귀';
-             setStatus(EmployeeAppStatus.WORKING);
-             setWorkLog(prev => [...prev, { label, time }]);
-             return;
+        let recordIndex = allAttendance.findIndex(r => r.employeeId === employee.id && r.date === currentDateStr);
+        let updatedAttendance = [...allAttendance];
+
+        if (recordIndex === -1) {
+            if (action === EmployeeAppStatus.WORKING) {
+                const newRecord: AttendanceRecord = {
+                    id: Date.now(),
+                    employeeId: employee.id,
+                    employeeName: employee.name,
+                    date: currentDateStr,
+                    clockIn: currentTimeStr,
+                    breakStart: null,
+                    breakEnd: null,
+                    clockOut: null,
+                    workHours: 0,
+                    status: AttendanceStatus.NORMAL,
+                    isModified: false,
+                };
+                updatedAttendance.push(newRecord);
+            } else {
+                alert('먼저 출근 기록을 해주세요.');
+                return;
+            }
+        } else {
+            const recordToUpdate = { ...updatedAttendance[recordIndex] };
+
+            switch(action) {
+                case EmployeeAppStatus.WORKING: // Already clocked in
+                    break;
+                case EmployeeAppStatus.BREAK:
+                    if (!recordToUpdate.breakStart) {
+                        recordToUpdate.breakStart = currentTimeStr;
+                    }
+                    break;
+                case EmployeeAppStatus.NONE: // Return from break or away
+                    if (recordToUpdate.breakStart && !recordToUpdate.breakEnd) {
+                        recordToUpdate.breakEnd = currentTimeStr;
+                    } // Logic for returning from 'away' can be added here
+                    break;
+                case EmployeeAppStatus.DONE:
+                    recordToUpdate.clockOut = currentTimeStr;
+                    recordToUpdate.workHours = calculateWorkHours(
+                        recordToUpdate.clockIn,
+                        recordToUpdate.clockOut,
+                        recordToUpdate.breakStart,
+                        recordToUpdate.breakEnd
+                    );
+                    break;
+                case EmployeeAppStatus.AWAY:
+                    // Could add logic for away status if needed
+                    break;
+            }
+            updatedAttendance[recordIndex] = recordToUpdate;
         }
+        setAttendance(updatedAttendance);
+    };
+    
+    const { derivedStatus, derivedWorkLog } = useMemo(() => {
+        if (!employee) return { derivedStatus: EmployeeAppStatus.NONE, derivedWorkLog: [] };
 
-        if (!label) {
-            switch(newStatus) {
-                case EmployeeAppStatus.WORKING: label = '출근'; break;
-                case EmployeeAppStatus.BREAK: label = '휴식 시작'; break;
-                case EmployeeAppStatus.DONE: label = '퇴근'; break;
-                case EmployeeAppStatus.AWAY: label = '외근 시작'; break;
+        const todayStr = new Date().toISOString().split('T')[0];
+        const todayRecord = allAttendance.find(r => r.employeeId === employee.id && r.date === todayStr);
+
+        if (!todayRecord) return { derivedStatus: EmployeeAppStatus.NONE, derivedWorkLog: [] };
+
+        const log: { label: string; time: string }[] = [];
+        if (todayRecord.clockIn) log.push({ label: '출근', time: todayRecord.clockIn });
+        if (todayRecord.breakStart) log.push({ label: '휴식 시작', time: todayRecord.breakStart });
+        if (todayRecord.breakEnd) log.push({ label: '업무 복귀', time: todayRecord.breakEnd });
+        if (todayRecord.clockOut) log.push({ label: '퇴근', time: todayRecord.clockOut });
+        
+        let status = EmployeeAppStatus.NONE;
+        if (todayRecord.clockIn) {
+            status = EmployeeAppStatus.WORKING;
+            if (todayRecord.breakStart && !todayRecord.breakEnd) {
+                status = EmployeeAppStatus.BREAK;
+            }
+            if (todayRecord.clockOut) {
+                status = EmployeeAppStatus.DONE;
             }
         }
         
-        setStatus(newStatus);
-        setWorkLog(prev => [...prev, { label, time }]);
-    };
+        return { derivedStatus: status, derivedWorkLog: log };
+    }, [allAttendance, employee]);
+
+    const employeeAttendance = useMemo(() => {
+        if (!employee) return [];
+        return allAttendance.filter(rec => rec.employeeId === employee.id);
+    }, [allAttendance, employee]);
 
     const handleLogout = () => {
         localStorage.removeItem('loggedInEmployeeId');
@@ -268,12 +344,12 @@ const WorkerDashboard = () => {
      const renderContent = () => {
         if (!employee) return null;
         switch (currentPage) {
-            case 'dashboard': return <DashboardContent employee={employee} status={status} workLog={workLog} onStatusChange={handleStatusChange} />;
+            case 'dashboard': return <DashboardContent employee={employee} status={derivedStatus} workLog={derivedWorkLog} onStatusChange={handleRecordAction} />;
             case 'schedule': return <PlaceholderContent title="스케줄 확인" />;
             case 'attendance': return (
                 <AttendanceView
-                    employees={employee ? [employee] : []}
-                    attendance={[]}
+                    employees={allEmployees.filter(e => e.storeId === storeId)}
+                    attendance={employeeAttendance}
                     onEditEmployee={() => {}}
                     onUpdateAttendance={() => {}}
                     onAddAttendance={() => {}}
@@ -284,7 +360,7 @@ const WorkerDashboard = () => {
             case 'paystub': return <PlaceholderContent title="급여 명세서" />;
             case 'profile': return <PlaceholderContent title="내 정보" />;
             case 'settings': return <PlaceholderContent title="환경 설정" />;
-            default: return <DashboardContent employee={employee} status={status} workLog={workLog} onStatusChange={handleStatusChange} />;
+            default: return <DashboardContent employee={employee} status={derivedStatus} workLog={derivedWorkLog} onStatusChange={handleRecordAction} />;
         }
     };
     
@@ -368,7 +444,7 @@ const WorkerDashboard = () => {
                 size="sm"
                 titleAlign="center"
             >
-                <RecordContent onRecord={handleStatusChange} onClose={() => setIsRecordModalOpen(false)} />
+                <RecordContent onRecord={handleRecordAction} onClose={() => setIsRecordModalOpen(false)} />
             </Modal>
 
             {switchedFromAdmin && employee && employee.id === 101 && (
@@ -381,7 +457,8 @@ const WorkerDashboard = () => {
                     관리자 모드
                 </button>
             )}
-             <button
+            
+            <button
                 onClick={() => setIsRecordModalOpen(true)}
                 className="fixed bottom-6 right-6 z-40 bg-red-600 text-white w-16 h-16 rounded-full flex items-center justify-center text-3xl shadow-lg hover:bg-red-700 transition-transform hover:scale-110 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
                 aria-label="근태 기록하기"
@@ -392,4 +469,4 @@ const WorkerDashboard = () => {
     );
 };
 
-export default WorkerDashboard;
+export default WorkerDashboardPage;

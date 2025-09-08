@@ -3,7 +3,7 @@ import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { Employee, AttendanceRecord, AttendanceStatus } from '../../types';
 import { Card, Modal, Button, Input, DatePicker } from '../../components/ui';
 import { CalendarHeader } from '../../components/admin/CalendarHeader';
-import { getTextColorForBackground } from '../../utils';
+import { getTextColorForBackground, calculateWorkHours } from '../../utils';
 
 interface AttendanceViewProps {
     employees: Employee[];
@@ -12,10 +12,11 @@ interface AttendanceViewProps {
     onUpdateAttendance: (updatedRecord: AttendanceRecord) => void;
     onAddAttendance: (newRecordData: Omit<AttendanceRecord, 'id' | 'isModified'>) => void;
     onDeleteAttendance: (recordIds: number[]) => void;
+    isWorker?: boolean;
 }
 
-export const AttendanceView = ({ employees, attendance, onEditEmployee, onUpdateAttendance, onAddAttendance, onDeleteAttendance }: AttendanceViewProps) => {
-    const [currentDate, setCurrentDate] = useState(new Date('2024-08-10'));
+export const AttendanceView = ({ employees, attendance, onEditEmployee, onUpdateAttendance, onAddAttendance, onDeleteAttendance, isWorker = false }: AttendanceViewProps) => {
+    const [currentDate, setCurrentDate] = useState(new Date());
     const [viewMode, setViewMode] = useState<'month' | 'day'>('month');
     const [selectedDateRecords, setSelectedDateRecords] = useState<AttendanceRecord[] | null>(null);
     const [recordForDetail, setRecordForDetail] = useState<AttendanceRecord | null>(null);
@@ -100,35 +101,23 @@ export const AttendanceView = ({ employees, attendance, onEditEmployee, onUpdate
         const month = currentDate.getMonth();
         const clickedDate = new Date(year, month, day);
         setCurrentDate(clickedDate);
-        const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+        const dateStr = `\${year}-\${String(month + 1).padStart(2, '0')}-\${String(day).padStart(2, '0')}`;
         const records = attendanceByDate[dateStr] || [];
+
+        if (isWorker) {
+            if (records.length === 1) {
+                setRecordForDetail(records[0]);
+            } else if (records.length > 1) {
+                setSelectedDateRecords(records);
+            }
+            return;
+        }
 
         if (records.length === 0) {
             setDateForNewRecord(clickedDate);
             setIsAddModalOpen(true);
         } else {
             setSelectedDateRecords(records);
-        }
-    };
-
-    const calculateWorkHours = (clockIn: string | null, clockOut: string | null, breakStart: string | null, breakEnd: string | null): number => {
-        if (!clockIn || !clockOut) return 0;
-        
-        try {
-            const start = new Date(`1970-01-01T${clockIn}`);
-            const end = new Date(`1970-01-01T${clockOut}`);
-            let diff = (end.getTime() - start.getTime()) / (1000 * 60 * 60);
-            
-            if (breakStart && breakEnd) {
-                const breakS = new Date(`1970-01-01T${breakStart}`);
-                const breakE = new Date(`1970-01-01T${breakEnd}`);
-                if (breakE > breakS) {
-                    diff -= (breakE.getTime() - breakS.getTime()) / (1000 * 60 * 60);
-                }
-            }
-            return parseFloat(Math.max(0, diff).toFixed(1));
-        } catch (e) {
-            return 0;
         }
     };
 
@@ -141,9 +130,9 @@ export const AttendanceView = ({ employees, attendance, onEditEmployee, onUpdate
         const status = formData.get('status') as AttendanceStatus;
 
         const getTimeFromForm = (namePrefix: string) => {
-            const hour = formData.get(`${namePrefix}Hour`) as string;
-            const minute = formData.get(`${namePrefix}Minute`) as string;
-            return (hour && hour !== '--' && minute && minute !== '--') ? `${hour}:${minute}` : null;
+            const hour = formData.get(`\${namePrefix}Hour`) as string;
+            const minute = formData.get(`\${namePrefix}Minute`) as string;
+            return (hour && hour !== '--' && minute && minute !== '--') ? `\${hour}:\${minute}` : null;
         };
 
         const clockIn = getTimeFromForm('clockIn');
@@ -196,7 +185,7 @@ export const AttendanceView = ({ employees, attendance, onEditEmployee, onUpdate
                 return { ...prev, [name]: null };
             }
     
-            const newTime = `${h || '00'}:${m || '00'}`;
+            const newTime = `\${h || '00'}:\${m || '00'}`;
             return { ...prev, [name]: newTime };
         });
     };
@@ -282,11 +271,11 @@ export const AttendanceView = ({ employees, attendance, onEditEmployee, onUpdate
 
         const calendarDays = [];
         for (let i = 0; i < firstDayOfMonth; i++) {
-            calendarDays.push(<div key={`empty-${i}`} className="border-r border-b bg-slate-50"></div>);
+            calendarDays.push(<div key={`empty-\${i}`} className="border-r border-b bg-slate-50"></div>);
         }
 
         for (let day = 1; day <= daysInMonth; day++) {
-            const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+            const dateStr = `\${year}-\${String(month + 1).padStart(2, '0')}-\${String(day).padStart(2, '0')}`;
             const records = attendanceByDate[dateStr] || [];
             
             calendarDays.push(
@@ -314,13 +303,13 @@ export const AttendanceView = ({ employees, attendance, onEditEmployee, onUpdate
         const totalCells = firstDayOfMonth + daysInMonth;
         const remainingCells = (7 - (totalCells % 7)) % 7;
         for (let i=0; i < remainingCells; i++) {
-            calendarDays.push(<div key={`empty-end-${i}`} className="border-r border-b bg-slate-50"></div>);
+            calendarDays.push(<div key={`empty-end-\${i}`} className="border-r border-b bg-slate-50"></div>);
         }
 
         return (
             <div className="grid grid-cols-7 border-t border-l">
                 {['일', '월', '화', '수', '목', '금', '토'].map((day, index) => (
-                    <div key={day} className={`text-center font-bold p-2 border-r border-b bg-slate-100 ${index === 0 ? 'text-red-500' : ''} ${index === 6 ? 'text-blue-500' : ''}`}>{day}</div>
+                    <div key={day} className={`text-center font-bold p-2 border-r border-b bg-slate-100 \${index === 0 ? 'text-red-500' : ''} \${index === 6 ? 'text-blue-500' : ''}`}>{day}</div>
                 ))}
                 {calendarDays}
             </div>
@@ -339,8 +328,8 @@ export const AttendanceView = ({ employees, attendance, onEditEmployee, onUpdate
             return h + m / 60;
         };
         
-        const gridTemplateColumns = `repeat(${activeEmployees.length}, minmax(90px, 1fr))`;
-        const minWidth = `${activeEmployees.length * 90}px`;
+        const gridTemplateColumns = `repeat(\${activeEmployees.length}, minmax(90px, 1fr))`;
+        const minWidth = `\${activeEmployees.length * 90}px`;
     
         return (
             <div className="border rounded-lg overflow-hidden bg-white">
@@ -367,16 +356,16 @@ export const AttendanceView = ({ employees, attendance, onEditEmployee, onUpdate
                         <div className="flex">
                             <div className="w-16 text-center text-xs shrink-0 sticky left-0 bg-slate-50 z-20">
                                 {Array.from({ length: 24 }).map((_, hour) => (
-                                    <div key={hour} style={{ height: `${hourHeight}px` }} className="border-b border-r flex items-center justify-center text-slate-500">
+                                    <div key={hour} style={{ height: `\${hourHeight}px` }} className="border-b border-r flex items-center justify-center text-slate-500">
                                         {String(hour).padStart(2, '0')}:00
                                     </div>
                                 ))}
                             </div>
                             <div className="flex-1 grid" style={{ gridTemplateColumns }}>
                                 {activeEmployees.map(employee => (
-                                    <div key={employee.id} className="relative border-r cursor-pointer" onClick={() => handleEmptyCellClick(employee.id)}>
+                                    <div key={employee.id} className="relative border-r" onClick={isWorker ? undefined : () => handleEmptyCellClick(employee.id)}>
                                         {Array.from({ length: 24 }).map((_, hour) => (
-                                            <div key={hour} style={{ height: `${hourHeight}px` }} className="border-b"></div>
+                                            <div key={hour} style={{ height: `\${hourHeight}px` }} className="border-b"></div>
                                         ))}
                                         {dayRecords.filter(rec => rec.employeeId === employee.id).map(rec => {
                                             const startDecimal = timeToDecimal(rec.clockIn);
@@ -385,7 +374,7 @@ export const AttendanceView = ({ employees, attendance, onEditEmployee, onUpdate
                                             if (startDecimal === 0 || endDecimal === 0 || endDecimal <= startDecimal) return null;
                                             
                                             const employeeForColor = employees.find(e => e.id === rec.employeeId);
-                                            const bgColor = employeeForColor?.color ? `${employeeForColor.color}E6` : '#eff6ff';
+                                            const bgColor = employeeForColor?.color ? `\${employeeForColor.color}E6` : '#eff6ff';
                                             const borderColor = employeeForColor?.color || '#60a5fa';
                                             const textColor = getTextColorForBackground(employeeForColor?.color);
             
@@ -402,17 +391,17 @@ export const AttendanceView = ({ employees, attendance, onEditEmployee, onUpdate
                                                     return (
                                                         <React.Fragment key={rec.id}>
                                                             <div
-                                                                onClick={(e) => { e.stopPropagation(); setRecordForDetail(rec); }}
-                                                                className="absolute p-1 text-xs rounded-t cursor-pointer border-l-4 overflow-hidden"
-                                                                style={{ top: `${top1}px`, height: `${height1}px`, left: '2px', right: '2px', backgroundColor: bgColor, borderColor: borderColor, color: textColor }}
+                                                                onClick={(e) => { e.stopPropagation(); if (!isWorker) setRecordForDetail(rec); }}
+                                                                className={`absolute p-1 text-xs rounded-t border-l-4 overflow-hidden \${!isWorker && 'cursor-pointer'}`}
+                                                                style={{ top: `\${top1}px`, height: `\${height1}px`, left: '2px', right: '2px', backgroundColor: bgColor, borderColor: borderColor, color: textColor }}
                                                             >
                                                                 <p className="font-semibold">{rec.clockIn} - {rec.clockOut}</p>
-                                                                <p className={`font-medium ${rec.status === AttendanceStatus.LATE ? 'text-red-700 font-bold' : ''}`}>{rec.status}</p>
+                                                                <p className={`font-medium \${rec.status === AttendanceStatus.LATE ? 'text-red-700 font-bold' : ''}`}>{rec.status}</p>
                                                             </div>
                                                              <div
-                                                                onClick={(e) => { e.stopPropagation(); setRecordForDetail(rec); }}
-                                                                className="absolute p-1 text-xs rounded-b cursor-pointer border-l-4 overflow-hidden"
-                                                                style={{ top: `${top2}px`, height: `${height2}px`, left: '2px', right: '2px', backgroundColor: bgColor, borderColor: borderColor, color: textColor }}
+                                                                onClick={(e) => { e.stopPropagation(); if (!isWorker) setRecordForDetail(rec); }}
+                                                                className={`absolute p-1 text-xs rounded-b border-l-4 overflow-hidden \${!isWorker && 'cursor-pointer'}`}
+                                                                style={{ top: `\${top2}px`, height: `\${height2}px`, left: '2px', right: '2px', backgroundColor: bgColor, borderColor: borderColor, color: textColor }}
                                                             />
                                                         </React.Fragment>
                                                     );
@@ -427,10 +416,10 @@ export const AttendanceView = ({ employees, attendance, onEditEmployee, onUpdate
                                                     key={rec.id}
                                                     onClick={(e) => { e.stopPropagation(); setRecordForDetail(rec); }}
                                                     className="absolute p-1 text-xs rounded cursor-pointer border-l-4 overflow-hidden"
-                                                    style={{ top: `${top}px`, height: `${height}px`, left: '2px', right: '2px', backgroundColor: bgColor, borderColor: borderColor, color: textColor }}
+                                                    style={{ top: `\${top}px`, height: `\${height}px`, left: '2px', right: '2px', backgroundColor: bgColor, borderColor: borderColor, color: textColor }}
                                                 >
                                                     <p className="font-semibold">{rec.clockIn} - {rec.clockOut}</p>
-                                                    <p className={`font-medium ${rec.status === AttendanceStatus.LATE ? 'text-red-700 font-bold' : ''}`}>{rec.status}</p>
+                                                    <p className={`font-medium \${rec.status === AttendanceStatus.LATE ? 'text-red-700 font-bold' : ''}`}>{rec.status}</p>
                                                 </div>
                                             );
                                         })}
@@ -463,11 +452,11 @@ export const AttendanceView = ({ employees, attendance, onEditEmployee, onUpdate
         <div className="col-span-1">
             <label className="block text-sm font-medium text-slate-700 mb-1">{label}</label>
             <div className="flex gap-2 items-center">
-                <select name={`${namePrefix}Hour`} defaultValue="00" className="w-full bg-white px-3 py-2 border border-slate-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                <select name={`\${namePrefix}Hour`} defaultValue="00" className="w-full bg-white px-3 py-2 border border-slate-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
                     {hours.map(h => <option key={h} value={h}>{h}</option>)}
                 </select>
                 <span className="shrink-0">시</span>
-                <select name={`${namePrefix}Minute`} defaultValue="00" className="w-full bg-white px-3 py-2 border border-slate-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                <select name={`\${namePrefix}Minute`} defaultValue="00" className="w-full bg-white px-3 py-2 border border-slate-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
                     {minutes.map(m => <option key={m} value={m}>{m}</option>)}
                 </select>
                 <span className="shrink-0">분</span>
@@ -505,7 +494,6 @@ export const AttendanceView = ({ employees, attendance, onEditEmployee, onUpdate
     return(
         <>
             <div className="space-y-4 pb-20">
-                <h2 className="text-2xl font-bold">근태 관리</h2>
                 <Card>
                     <CalendarHeader 
                         currentDate={currentDate}
@@ -550,7 +538,7 @@ export const AttendanceView = ({ employees, attendance, onEditEmployee, onUpdate
                                             {selectedDateRecords.map(rec => (
                                                 <tr
                                                     key={rec.id}
-                                                    className={`border-b ${!isDeleteMode ? 'hover:bg-slate-50 cursor-pointer' : ''}`}
+                                                    className={`border-b \${!isDeleteMode ? 'hover:bg-slate-50 cursor-pointer' : ''}`}
                                                     onClick={!isDeleteMode ? () => { setRecordForDetail(rec); setSelectedDateRecords(null); } : undefined}
                                                 >
                                                     {isDeleteMode && (
@@ -570,8 +558,8 @@ export const AttendanceView = ({ employees, attendance, onEditEmployee, onUpdate
                                                     </td>
                                                     <td className="p-3">{rec.clockIn || '-'}</td>
                                                     <td className="p-3">{rec.clockOut || '-'}</td>
-                                                    <td className="p-3">{rec.workHours > 0 ? `${rec.workHours}시간` : '-'}</td>
-                                                    <td className={`p-3 font-medium ${rec.status === AttendanceStatus.LATE ? 'text-red-600' : ''}`}>{rec.status}</td>
+                                                    <td className="p-3">{rec.workHours > 0 ? `\${rec.workHours}시간` : '-'}</td>
+                                                    <td className={`p-3 font-medium \${rec.status === AttendanceStatus.LATE ? 'text-red-600' : ''}`}>{rec.status}</td>
                                                 </tr>
                                             ))}
                                         </tbody>
@@ -590,9 +578,9 @@ export const AttendanceView = ({ employees, attendance, onEditEmployee, onUpdate
                                     </>
                                 ) : (
                                     <>
-                                        <Button variant="danger" onClick={() => setIsDeleteMode(true)}>근태 삭제</Button>
-                                        <div className="flex gap-2">
-                                            <Button onClick={handleAddFromList}>근태 추가</Button>
+                                        {!isWorker && <Button variant="danger" onClick={() => setIsDeleteMode(true)}>근태 삭제</Button>}
+                                        <div className="flex gap-2 ml-auto">
+                                            {!isWorker && <Button onClick={handleAddFromList}>근태 추가</Button>}
                                             <Button variant="secondary" onClick={closeListModal}>닫기</Button>
                                         </div>
                                     </>
@@ -663,7 +651,7 @@ export const AttendanceView = ({ employees, attendance, onEditEmployee, onUpdate
                                             <DetailItem label="직급" value={employeeForDetail.position} />
                                             <DetailItem label="고용형태" value={employeeForDetail.employmentType} />
                                             <DetailItem label="급여형태" value={employeeForDetail.payType} />
-                                            <DetailItem label="급여" value={`${employeeForDetail.payRate.toLocaleString()}원`} />
+                                            <DetailItem label="급여" value={`\${employeeForDetail.payRate.toLocaleString()}원`} />
                                         </dl>
                                     </div>
                                     <div>
@@ -674,20 +662,24 @@ export const AttendanceView = ({ employees, attendance, onEditEmployee, onUpdate
                                             <DetailItem label="퇴근 시간" value={recordForDetail.clockOut} />
                                             <DetailItem label="휴게 시작" value={recordForDetail.breakStart} />
                                             <DetailItem label="휴게 종료" value={recordForDetail.breakEnd} />
-                                            <DetailItem label="총 근무" value={`${recordForDetail.workHours} 시간`} />
+                                            <DetailItem label="총 근무" value={`\${recordForDetail.workHours} 시간`} />
                                             <DetailItem label="상태" value={<span className={recordForDetail.status === AttendanceStatus.LATE ? 'text-red-600 font-bold' : ''}>{recordForDetail.status}</span>} />
                                         </dl>
                                     </div>
                                 </div>
-                                <div className="flex justify-between items-center pt-4 mt-6 border-t">
-                                    <Button variant="danger" onClick={() => {
-                                        setSelectedRecordIds([recordForDetail.id]);
-                                        setIsConfirmDeleteOpen(true);
-                                    }}>삭제</Button>
-                                    <div className="flex gap-3">
-                                        <Button variant="secondary" onClick={() => { setRecordForDetail(null); onEditEmployee(employeeForDetail.id); }}>정보 수정</Button>
-                                        <Button onClick={() => setIsEditingAttendance(true)}>기록 수정</Button>
-                                    </div>
+                                <div className="flex justify-end gap-3 pt-4 mt-6 border-t">
+                                    {!isWorker ? (
+                                        <>
+                                            <Button variant="danger" className="mr-auto" onClick={() => {
+                                                setSelectedRecordIds([recordForDetail.id]);
+                                                setIsConfirmDeleteOpen(true);
+                                            }}>삭제</Button>
+                                            <Button variant="secondary" onClick={() => { setRecordForDetail(null); onEditEmployee(employeeForDetail.id); }}>정보 수정</Button>
+                                            <Button onClick={() => setIsEditingAttendance(true)}>기록 수정</Button>
+                                        </>
+                                    ) : (
+                                        <Button variant="secondary" onClick={() => { setRecordForDetail(null); setIsEditingAttendance(false); }}>닫기</Button>
+                                    )}
                                 </div>
                             </div>
                         ) : (
@@ -804,14 +796,16 @@ export const AttendanceView = ({ employees, attendance, onEditEmployee, onUpdate
                     </div>
                 </Modal>
             </div>
-            <div className="fixed bottom-0 right-0 p-4 bg-white/80 backdrop-blur-sm border-t w-full lg:w-[calc(100%-16rem)] z-10">
-                <div className="flex justify-end px-6">
-                    <Button onClick={() => setIsExportModalOpen(true)}>
-                        <span role="img" aria-hidden="true" className="mr-2">📄</span>
-                        엑셀 다운로드
-                    </Button>
+             {!isWorker && (
+                <div className="fixed bottom-0 right-0 p-4 bg-white/80 backdrop-blur-sm border-t w-full lg:w-[calc(100%-16rem)] z-10">
+                    <div className="flex justify-end px-6">
+                        <Button onClick={() => setIsExportModalOpen(true)}>
+                            <span role="img" aria-hidden="true" className="mr-2">📄</span>
+                            엑셀 다운로드
+                        </Button>
+                    </div>
                 </div>
-            </div>
+            )}
         </>
     );
 };

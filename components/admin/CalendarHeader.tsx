@@ -113,7 +113,7 @@ export const CalendarHeader: React.FC<CalendarHeaderProps> = ({ currentDate, set
                 <div className="flex items-center gap-2">
                     <div className="flex items-center bg-slate-200 rounded-md p-0.5">
                         <Button onClick={() => setViewMode('month')} size="sm" variant={viewMode === 'month' ? 'primary' : 'secondary'} className={viewMode !== 'month' ? 'bg-transparent border-0 shadow-none' : ''}>월</Button>
-                        <Button onClick={() => setViewMode('day')} size="sm" variant={viewMode === 'day' ? 'primary' : 'secondary'} className={viewMode !== 'day' ? 'bg-transparent border-0 shadow-none' : ''}>일</Button>
+                        <Button onClick={() => { setViewMode('day'); setCurrentDate(new Date()); }} size="sm" variant={viewMode === 'day' ? 'primary' : 'secondary'} className={viewMode !== 'day' ? 'bg-transparent border-0 shadow-none' : ''}>일</Button>
                     </div>
                     <Button onClick={() => setCurrentDate(new Date())} size="sm" variant="secondary">오늘</Button>
                 </div>

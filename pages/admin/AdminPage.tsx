@@ -2,37 +2,39 @@
 
 
 
-
-
 import React, { useState, useMemo, useCallback, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { NewWorkerRequest, Employee, Schedule, AttendanceRecord } from '../types';
-import { MOCK_EMPLOYEES_DATA, MOCK_SCHEDULES_DATA, MOCK_ATTENDANCE, STORE_DATA } from '../data/mockData';
-import { Modal, Button, Card } from '../components/ui';
-import { AppHeader } from '../components/admin/AppHeader';
-import { EmployeeInfoForm } from '../components/admin/EmployeeInfoForm';
-import type { EmployeeFormData } from '../components/admin/EmployeeInfoForm';
-// FIX: Corrected import paths for admin view components to use 'Admin' with PascalCase.
-import { DashboardView } from './Admin/DashboardView';
-import { EmployeeView } from './Admin/EmployeeView';
-import { AttendanceView } from './Admin/AttendanceView';
-import { ScheduleView } from './Admin/ScheduleView';
-import { QRView } from './Admin/QRView';
-import { getRandomColor } from '../utils';
+import { Employee, Schedule, AttendanceRecord } from '../../types';
+import { STORE_DATA } from '../../data/mockData';
+import { Modal, Button, Card } from '../../components/ui';
+import { AppHeader } from '../../components/admin/AppHeader';
+import { EmployeeInfoForm } from '../../components/admin/EmployeeInfoForm';
+import type { EmployeeFormData } from '../../components/admin/EmployeeInfoForm';
+// FIX: Corrected import paths to resolve casing conflicts. The components are in the parent 'Admin' directory.
+import { DashboardView } from '../Admin/DashboardView';
+import { EmployeeView } from '../Admin/EmployeeView';
+import { AttendanceView } from '../Admin/AttendanceView';
+import { ScheduleView } from '../Admin/ScheduleView';
+import { QRView } from '../Admin/QRView';
+import { getRandomColor } from '../../utils';
 
 type Account = { id: string, password?: string, companyCode: string };
 
-const AdminApp = () => {
+interface AdminPageProps {
+  employees: (Employee & { accountNumber?: string; contract?: string | null; bankAccountCopy?: string | null; })[];
+  setEmployees: React.Dispatch<React.SetStateAction<(Employee & { accountNumber?: string; contract?: string | null; bankAccountCopy?: string | null; })[]>>;
+  attendance: AttendanceRecord[];
+  setAttendance: React.Dispatch<React.SetStateAction<AttendanceRecord[]>>;
+}
+
+const AdminPage = ({ employees, setEmployees, attendance, setAttendance }: AdminPageProps) => {
     const navigate = useNavigate();
     const [isAuthenticated, setIsAuthenticated] = useState(false);
     const [loggedInAccount, setLoggedInAccount] = useState<Account | null>(null);
     const [currentPage, setCurrentPage] = useState('dashboard');
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
-    // Main data states
-    const [employees, setEmployees] = useState<(Employee & { accountNumber?: string; contract?: string | null; bankAccountCopy?: string | null; })[]>(MOCK_EMPLOYEES_DATA);
-    const [schedules, setSchedules] = useState(MOCK_SCHEDULES_DATA);
-    const [attendance, setAttendance] = useState<AttendanceRecord[]>(MOCK_ATTENDANCE);
+    // Main data states are now passed as props
     
     // Store management states
     const [currentStore, setCurrentStore] = useState('');
@@ -52,11 +54,6 @@ const AdminApp = () => {
         if (!currentStoreId) return employees;
         return employees.filter(e => e.storeId === currentStoreId);
     }, [employees, currentStoreId]);
-
-    const filteredSchedules = useMemo(() => {
-        if (!currentStoreId) return schedules;
-        return schedules.filter(s => s.storeId === currentStoreId);
-    }, [schedules, currentStoreId]);
 
     const filteredAttendance = useMemo(() => {
         if (!currentStoreId) return attendance;
@@ -110,10 +107,6 @@ const AdminApp = () => {
         setCurrentPage(page);
         setIsSidebarOpen(false);
     }, []);
-
-     const handleSchedulesChange = (updatedSchedules: Schedule[]) => {
-        setSchedules(updatedSchedules);
-    };
     
     const handleOpenEmployeeModal = useCallback((employee: Employee, mode: 'edit' | 'new') => {
         if (mode === 'edit') {
@@ -212,7 +205,6 @@ const AdminApp = () => {
     const NavItem = ({ icon, label, pageName }: { icon: string, label: string, pageName: string }) => (
         <button 
             onClick={pageName === 'logout' ? handleLogout : () => handleNavigate(pageName)} 
-// FIX: Changed single quotes to backticks for template literal.
             className={`flex items-center gap-3 px-3 py-2.5 rounded-md w-full text-left transition-colors ${currentPage === pageName ? 'bg-blue-600 text-white' : 'hover:bg-slate-200'}`}
         >
             <span className="w-5 text-center text-xl">{icon}</span>
@@ -265,7 +257,6 @@ const AdminApp = () => {
             )}
 
             {/* Sidebar */}
-            {/* FIX: Changed single quotes to backticks for template literal. */}
             <aside className={`fixed top-0 left-0 h-full z-30 w-64 bg-white p-4 flex flex-col justify-between border-r transition-transform duration-300 ease-in-out ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
                 <div>
                     <AppHeader onMenuClick={() => setIsSidebarOpen(false)} isSidebarContext={true} />
@@ -319,7 +310,6 @@ const AdminApp = () => {
                            isNew={employeeModalMode === 'new'}
                         />
                     </div>
-                    {/* FIX: Changed single quotes to backticks for template literal. */}
                     <div className={`flex-shrink-0 flex ${employeeModalMode === 'new' ? 'justify-center' : 'justify-end'} gap-3 pt-4 mt-6 border-t`}>
                         {employeeModalMode === 'new' ? (
                             <>
@@ -367,4 +357,4 @@ const AdminApp = () => {
     );
 };
 
-export default AdminApp;
+export default AdminPage;
