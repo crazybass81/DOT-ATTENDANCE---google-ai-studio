@@ -1,3 +1,4 @@
+
 import React, { ReactNode, useRef, useState, useEffect } from 'react';
 
 interface ModalProps {
@@ -188,113 +189,92 @@ export const FilterDropdown: React.FC<{
     );
 };
 
-export const DatePicker = ({ currentDate, onDateSelect, onClose }: {
-    currentDate: Date;
-    onDateSelect: (date: Date) => void;
+export const DatePicker = ({ currentDate, onDateSelect, onClose, triggerRef }: { 
+    currentDate: Date; 
+    onDateSelect: (date: Date) => void; 
     onClose: () => void;
+    triggerRef?: React.RefObject<HTMLElement>;
 }) => {
-    const [viewDate, setViewDate] = useState(new Date(currentDate.getFullYear(), currentDate.getMonth(), 1));
-    const pickerRef = useRef<HTMLDivElement>(null);
-    const [isYearPickerOpen, setIsYearPickerOpen] = useState(false);
-    const [isMonthPickerOpen, setIsMonthPickerOpen] = useState(false);
-    const yearPickerRef = useRef<HTMLDivElement>(null);
-    const monthPickerRef = useRef<HTMLDivElement>(null);
+    const calendarRef = useRef<HTMLDivElement>(null);
+    const [year, setYear] = useState(currentDate.getFullYear());
+    const [month, setMonth] = useState(currentDate.getMonth());
+    const [position, setPosition] = useState<{ top: number; left: number } | null>(null);
+
+    useEffect(() => {
+        if (triggerRef?.current) {
+            const rect = triggerRef.current.getBoundingClientRect();
+            setPosition({
+                top: rect.bottom + window.scrollY + 5,
+                left: rect.left + window.scrollX,
+            });
+        }
+    }, [triggerRef]);
 
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
-            if (pickerRef.current && !pickerRef.current.contains(event.target as Node)) {
+            if (calendarRef.current && !calendarRef.current.contains(event.target as Node)) {
                 onClose();
-            }
-            if (yearPickerRef.current && !yearPickerRef.current.contains(event.target as Node)) {
-                setIsYearPickerOpen(false);
-            }
-            if (monthPickerRef.current && !monthPickerRef.current.contains(event.target as Node)) {
-                setIsMonthPickerOpen(false);
             }
         };
         document.addEventListener("mousedown", handleClickOutside);
-        return () => document.removeEventListener("mousedown", handleClickOutside);
+        return () => {
+            document.removeEventListener("mousedown", handleClickOutside);
+        };
     }, [onClose]);
-    
+
+    const handleDateClick = (day: number) => {
+        const selectedDate = new Date(year, month, day);
+        onDateSelect(selectedDate);
+    };
+
     const changeMonth = (amount: number) => {
-        setViewDate(prev => {
-            const newDate = new Date(prev);
-            newDate.setMonth(newDate.getMonth() + amount);
-            return newDate;
-        });
+        const newDate = new Date(year, month + amount, 1);
+        setYear(newDate.getFullYear());
+        setMonth(newDate.getMonth());
     };
 
-    const handleYearChange = (newYear: number) => {
-        setViewDate(prev => {
-            const newDate = new Date(prev);
-            newDate.setFullYear(newYear);
-            return newDate;
-        });
-        setIsYearPickerOpen(false);
-    };
-
-    const handleMonthChange = (newMonth: number) => {
-        setViewDate(prev => {
-            const newDate = new Date(prev);
-            newDate.setMonth(newMonth - 1);
-            return newDate;
-        });
-        setIsMonthPickerOpen(false);
-    };
-
-    const year = viewDate.getFullYear();
-    const month = viewDate.getMonth();
-    const yearRange = Array.from({ length: 11 }, (_, i) => year - 5 + i);
-
-    const firstDayOfMonth = new Date(year, month, 1).getDay();
+    const firstDay = new Date(year, month, 1).getDay();
     const daysInMonth = new Date(year, month + 1, 0).getDate();
+    const days = Array.from({ length: daysInMonth }, (_, i) => i + 1);
+    const emptyDays = Array.from({ length: firstDay });
 
-    const days = Array.from({ length: firstDayOfMonth }, (_, i) => <div key={`empty-${i}`}></div>);
-    for (let day = 1; day <= daysInMonth; day++) {
-        const date = new Date(year, month, day);
-        const isSelected = date.toDateString() === currentDate.toDateString();
-        days.push(
-            <button
-                key={day}
-                onClick={() => onDateSelect(date)}
-                className={`w-8 h-8 rounded-full flex items-center justify-center text-sm ${
-                    isSelected ? 'bg-blue-600 text-white' : 'hover:bg-slate-100'
-                }`}
-            >
-                {day}
-            </button>
-        );
-    }
+    const today = new Date();
+    const isCurrentMonth = today.getFullYear() === year && today.getMonth() === month;
+    
+    const baseClasses = "z-30 w-72 bg-white rounded-lg shadow-xl border p-4";
+    const positionClasses = triggerRef 
+        ? "fixed" 
+        : "absolute top-full mt-2 left-1/2 -translate-x-1/2";
+
+    const style = triggerRef && position ? { top: `${position.top}px`, left: `${position.left}px` } : {};
 
     return (
-        <div ref={pickerRef} className="absolute z-10 top-full mt-2 bg-white rounded-lg shadow-lg border p-4 w-72 left-1/2 -translate-x-1/2">
-            <div className="flex justify-between items-center mb-2">
-                <Button onClick={() => changeMonth(-1)} size="sm" variant="secondary">◀</Button>
-                <div className="flex items-center gap-2">
-                    <div className="relative" ref={yearPickerRef}>
-                        <button onClick={() => setIsYearPickerOpen(p => !p)} className="font-semibold px-2 py-1 rounded-md hover:bg-slate-100">{year}년</button>
-                        {isYearPickerOpen && (
-                            <div className="absolute z-20 top-full mt-1 left-1/2 -translate-x-1/2 w-28 bg-white rounded-md shadow-lg border max-h-48 overflow-y-auto">
-                                <ul>{yearRange.map(y => <li key={y} className="px-3 py-1.5 text-sm text-center cursor-pointer hover:bg-slate-100" onClick={() => handleYearChange(y)}>{y}</li>)}</ul>
-                            </div>
-                        )}
-                    </div>
-                    <div className="relative" ref={monthPickerRef}>
-                        <button onClick={() => setIsMonthPickerOpen(p => !p)} className="font-semibold px-2 py-1 rounded-md hover:bg-slate-100">{month + 1}월</button>
-                        {isMonthPickerOpen && (
-                            <div className="absolute z-20 top-full mt-1 left-1/2 -translate-x-1/2 w-20 bg-white rounded-md shadow-lg border max-h-48 overflow-y-auto">
-                                <ul>{Array.from({length: 12}, (_, i) => i + 1).map(m => <li key={m} className="px-3 py-1.5 text-sm text-center cursor-pointer hover:bg-slate-100" onClick={() => handleMonthChange(m)}>{m}월</li>)}</ul>
-                            </div>
-                        )}
-                    </div>
-                </div>
-                <Button onClick={() => changeMonth(1)} size="sm" variant="secondary">▶</Button>
+        <div ref={calendarRef} className={`${baseClasses} ${positionClasses}`} style={style}>
+            <div className="flex justify-between items-center mb-4">
+                <button onClick={() => changeMonth(-1)} className="px-2 py-1 rounded hover:bg-slate-100">◀</button>
+                <div className="font-bold">{`${year}년 ${month + 1}월`}</div>
+                <button onClick={() => changeMonth(1)} className="px-2 py-1 rounded hover:bg-slate-100">▶</button>
             </div>
-            <div className="grid grid-cols-7 gap-1 text-center text-xs font-medium text-slate-500 mb-2">
-                {['일', '월', '화', '수', '목', '금', '토'].map(d => <div key={d}>{d}</div>)}
-            </div>
-            <div className="grid grid-cols-7 gap-1 place-items-center">
-                {days}
+            <div className="grid grid-cols-7 text-center text-sm">
+                {['일', '월', '화', '수', '목', '금', '토'].map(day => <div key={day} className="font-semibold text-slate-500 py-1">{day}</div>)}
+                {emptyDays.map((_, i) => <div key={`empty-${i}`}></div>)}
+                {days.map(day => {
+                    const isToday = isCurrentMonth && day === today.getDate();
+                    const isSelected = day === currentDate.getDate() && month === currentDate.getMonth() && year === currentDate.getFullYear();
+                    return (
+                        <button 
+                            key={day} 
+                            onClick={() => handleDateClick(day)} 
+                            className={`py-1 rounded-full w-8 h-8 flex items-center justify-center mx-auto my-0.5
+                                ${isSelected ? 'bg-blue-600 text-white font-bold' : ''}
+                                ${!isSelected && isToday ? 'bg-blue-100 text-blue-800' : ''}
+                                ${!isSelected && !isToday ? 'hover:bg-slate-100' : ''}
+                            `}
+                        >
+                            {day}
+                        </button>
+                    )
+                })}
             </div>
         </div>
     );
