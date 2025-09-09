@@ -1,5 +1,5 @@
 {
-  "name": "DOT Attendance - MVP",
+  "name": "Copy of DOT Attendance - MVP2",
   "description": "A comprehensive attendance management system featuring a dual-interface for administrators (Master Admin) and employees (User). Admins can manage employees, schedules, and attendance, while employees can clock in/out and manage their shifts via QR code.",
   "requestFramePermissions": [
     "camera"

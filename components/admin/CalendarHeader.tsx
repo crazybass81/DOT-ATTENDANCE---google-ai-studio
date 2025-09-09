@@ -64,7 +64,7 @@ export const CalendarHeader: React.FC<CalendarHeaderProps> = ({ currentDate, set
             <div className="flex justify-center items-center gap-4">
                 <Button onClick={() => handleDateChange(-1)} size="sm" variant="secondary">◀</Button>
                  {viewMode === 'month' ? (
-                    <div className="flex items-center gap-4 text-xl font-bold">
+                    <div className="flex items-center gap-1 text-xl font-bold">
                         <div className="relative" ref={yearPickerRef}>
                             <button onClick={() => { setIsYearPickerOpen(p => !p); setIsMonthPickerOpen(false); }} className="px-2 py-1 rounded-md hover:bg-slate-100">
                                 {year}년

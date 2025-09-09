@@ -465,16 +465,16 @@ export const AttendanceView = ({ employees, attendance, onEditEmployee, onUpdate
     
     const TimeSelectGroup = ({ label, namePrefix }: { label: string, namePrefix: string }) => (
         <div className="col-span-1">
-            <label className="block text-sm font-medium text-slate-700 mb-1">{label}</label>
+            <label className="block text-xs font-medium text-slate-700 mb-1">{label}</label>
             <div className="flex gap-2 items-center">
-                <select name={`${namePrefix}Hour`} defaultValue="--" className="w-full bg-white px-3 py-2 border border-slate-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                <select name={`${namePrefix}Hour`} defaultValue="--" className="appearance-none text-center w-full bg-white px-2 py-2 border border-slate-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-xs">
                     {hours.map(h => <option key={h} value={h}>{h}</option>)}
                 </select>
-                <span className="shrink-0">시</span>
-                <select name={`${namePrefix}Minute`} defaultValue="--" className="w-full bg-white px-3 py-2 border border-slate-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                <span className="shrink-0 text-xs">시</span>
+                <select name={`${namePrefix}Minute`} defaultValue="--" className="appearance-none text-center w-full bg-white px-2 py-2 border border-slate-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-xs">
                     {minutes.map(m => <option key={m} value={m}>{m}</option>)}
                 </select>
-                <span className="shrink-0">분</span>
+                <span className="shrink-0 text-xs">분</span>
             </div>
         </div>
     );
@@ -516,7 +516,14 @@ export const AttendanceView = ({ employees, attendance, onEditEmployee, onUpdate
                         setCurrentDate={setCurrentDate}
                         viewMode={viewMode}
                         setViewMode={setViewMode}
-                    />
+                    >
+                         {!isWorker && (
+                             <Button onClick={() => setIsExportModalOpen(true)} size="sm" variant="secondary">
+                                <span role="img" aria-hidden="true" className="mr-1">📄</span>
+                                내보내기
+                            </Button>
+                        )}
+                    </CalendarHeader>
                     {viewMode === 'month' ? renderMonthView() : renderDayView()}
                 </Card>
 
@@ -625,8 +632,8 @@ export const AttendanceView = ({ employees, attendance, onEditEmployee, onUpdate
                         <form onSubmit={handleAddNewRecord}>
                             <div className="grid grid-cols-2 gap-4">
                                  <div className="col-span-2">
-                                    <label htmlFor="employeeId" className="block text-sm font-medium text-slate-700 mb-1">근로자</label>
-                                    <select id="employeeId" name="employeeId" required defaultValue={newRecordEmployeeId || ''} className="w-full bg-white px-3 py-2 border border-slate-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                                    <label htmlFor="employeeId" className="block text-xs font-medium text-slate-700 mb-1">근로자</label>
+                                    <select id="employeeId" name="employeeId" required defaultValue={newRecordEmployeeId || ''} className="w-full bg-white px-3 py-2 border border-slate-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-xs">
                                         <option value="" disabled>근로자를 선택하세요</option>
                                         {employees.filter(e => e.status === '재직').map(e => <option key={e.id} value={e.id}>{e.name}</option>)}
                                     </select>
@@ -638,8 +645,8 @@ export const AttendanceView = ({ employees, attendance, onEditEmployee, onUpdate
                                 <TimeSelectGroup label="외근 시작" namePrefix="awayStart" />
                                 <TimeSelectGroup label="외근 종료" namePrefix="awayEnd" />
                                  <div className="col-span-2">
-                                     <label htmlFor="status" className="block text-sm font-medium text-slate-700 mb-1">상태</label>
-                                     <select id="status" name="status" defaultValue={AttendanceStatus.NORMAL} className="w-full bg-white px-3 py-2 border border-slate-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                                     <label htmlFor="status" className="block text-xs font-medium text-slate-700 mb-1">상태</label>
+                                     <select id="status" name="status" defaultValue={AttendanceStatus.NORMAL} className="w-full bg-white px-3 py-2 border border-slate-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-xs">
                                         {Object.values(AttendanceStatus).map(s => <option key={s} value={s}>{s}</option>)}
                                      </select>
                                 </div>
@@ -818,16 +825,6 @@ export const AttendanceView = ({ employees, attendance, onEditEmployee, onUpdate
                     </div>
                 </Modal>
             </div>
-             {!isWorker && (
-                <div className="fixed bottom-0 right-0 p-4 bg-white/80 backdrop-blur-sm border-t w-full lg:w-[calc(100%-16rem)] z-10">
-                    <div className="flex justify-end px-6">
-                        <Button onClick={() => setIsExportModalOpen(true)}>
-                            <span role="img" aria-hidden="true" className="mr-2">📄</span>
-                            엑셀 다운로드
-                        </Button>
-                    </div>
-                </div>
-            )}
         </>
     );
 };

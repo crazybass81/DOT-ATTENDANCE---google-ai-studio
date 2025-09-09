@@ -1,4 +1,5 @@
 
+
 import React, { useState, useMemo, useCallback, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Employee, Schedule, AttendanceRecord } from '../../types';
@@ -7,6 +8,7 @@ import { Modal, Button, Card } from '../../components/ui';
 import { AppHeader } from '../../components/admin/AppHeader';
 import { EmployeeInfoForm } from '../../components/admin/EmployeeInfoForm';
 import type { EmployeeFormData } from '../../components/admin/EmployeeInfoForm';
+// FIX: Corrected import paths to be relative to the current directory and use PascalCase.
 import { DashboardView } from './DashboardView';
 import { EmployeeView } from './EmployeeView';
 import { AttendanceView } from './AttendanceView';
@@ -83,20 +85,6 @@ const AdminPage = ({ employees, setEmployees, attendance, setAttendance }: Admin
         setIsAuthenticated(false);
         setLoggedInAccount(null);
         navigate('/');
-    };
-
-    const handleSwitchToWorker = () => {
-        if (loggedInAccount) {
-            const targetEmployee = employees.find(e => e.id === 101 && e.storeId === 'bunsik-store');
-            if (targetEmployee) {
-                localStorage.setItem('switchedFromAdmin', JSON.stringify(loggedInAccount));
-                localStorage.setItem('loggedInEmployeeId', String(targetEmployee.id));
-                localStorage.removeItem('loggedInAdmin');
-                navigate(`/worker/${targetEmployee.storeId}/dashboard`);
-            } else {
-                alert('전환할 근로자 계정(김성실)을 찾을 수 없습니다.');
-            }
-        }
     };
 
     const handleNavigate = useCallback((page: string) => {
@@ -338,17 +326,6 @@ const AdminPage = ({ employees, setEmployees, attendance, setAttendance }: Admin
                     </div>
                 </div>
             </Modal>
-            
-            {loggedInAccount?.id === 'bunsik-admin' && (
-                <button
-                    onClick={handleSwitchToWorker}
-                    className="fixed bottom-6 right-6 z-40 bg-red-600 text-white w-28 h-14 rounded-full flex items-center justify-center text-sm font-semibold shadow-lg hover:bg-red-700 transition-transform hover:scale-110 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-transparent focus:ring-red-500"
-                    aria-label="근로자 모드로 전환"
-                >
-                    <span role="img" aria-hidden="true" className="mr-2 text-lg">🔄</span>
-                    근로자 모드
-                </button>
-            )}
         </div>
     );
 };

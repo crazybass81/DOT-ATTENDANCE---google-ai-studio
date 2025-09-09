@@ -1,5 +1,3 @@
-
-
 import React, { useState, useRef, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Button, Input, Modal, Textarea } from '../../components/ui';
@@ -15,7 +13,7 @@ const TypeSelectionCard = ({ title, description, emoji, onClick }: { title: stri
             <span className="text-4xl" role="img" aria-hidden="true">{emoji}</span>
             <div>
                 <h3 className="font-bold text-slate-800">{title}</h3>
-                <p className="text-sm text-slate-600">{description}</p>
+                <p className="text-xs text-slate-600">{description}</p>
             </div>
         </div>
     </button>
@@ -66,13 +64,13 @@ const ProgressIndicator = ({ step, userType }: { step: number; userType: string;
                     return (
                         <React.Fragment key={s.number}>
                             <div className="flex flex-col items-center w-24">
-                                <div className={`rounded-full h-8 w-8 flex items-center justify-center font-bold text-sm transition-colors duration-300 ${circle}`}>
+                                <div className={`rounded-full h-7 w-7 flex items-center justify-center font-bold text-sm transition-colors duration-300 ${circle}`}>
                                     {isCompleted ? '✓' : s.number}
                                 </div>
                                 <p className={`mt-2 text-center text-xs font-bold uppercase whitespace-nowrap transition-colors duration-300 ${text}`}>{s.title}</p>
                             </div>
                             {index < steps.length - 1 && (
-                                <div className={`flex-auto border-t-2 mt-4 transition-colors duration-300 ${step > s.number ? stateClasses.completed.connector : connector}`}></div>
+                                <div className={`flex-auto border-t-2 mt-3.5 transition-colors duration-300 ${step > s.number ? stateClasses.completed.connector : connector}`}></div>
                             )}
                         </React.Fragment>
                     );
@@ -386,8 +384,8 @@ export const AdminRegisterForm = ({ onBackToLogin }: { onBackToLogin: () => void
     
     return (
         <div className="w-full max-w-lg flex flex-col h-full max-h-[85vh]">
-            <div className="text-center mb-8">
-                <h1 className="text-4xl font-bold text-blue-700">DOT ATTENDANCE</h1>
+            <div className="text-center mb-6">
+                <h1 className="text-3xl font-bold text-blue-700 leading-tight">DOT<br />ATTENDANCE</h1>
                 <p className="text-lg text-slate-600 mt-1">회원가입</p>
             </div>
             {step < 4 && (
@@ -396,7 +394,7 @@ export const AdminRegisterForm = ({ onBackToLogin }: { onBackToLogin: () => void
                 </div>
             )}
             <div className="bg-white/70 backdrop-blur-sm border border-white/30 rounded-lg shadow-xl flex flex-col flex-1 overflow-hidden">
-                <div className="p-8 overflow-y-auto">
+                <div className="p-8 overflow-y-auto no-scrollbar">
                     {step === 1 && (
                         <form onSubmit={handleNext} className="space-y-4">
                             
@@ -417,6 +415,7 @@ export const AdminRegisterForm = ({ onBackToLogin }: { onBackToLogin: () => void
                                     onFocus={() => {
                                         if (formData.id) setShowIdAutocomplete(true);
                                     }}
+                                    className="text-sm"
                                 />
                                 {showIdAutocomplete && filteredIds.length > 0 && (
                                     <div className="absolute z-10 w-full mt-1 bg-white border border-slate-300 rounded-md shadow-lg max-h-40 overflow-y-auto">
@@ -433,51 +432,57 @@ export const AdminRegisterForm = ({ onBackToLogin }: { onBackToLogin: () => void
                             </div>
 
                             <div>
-                                <Input label="비밀번호" name="password" type="password" value={formData.password} onChange={handleInputChange} aria-describedby="password-rules" />
+                                <Input label="비밀번호" name="password" type="password" value={formData.password} onChange={handleInputChange} aria-describedby="password-rules" className="text-sm" />
                                 <p id="password-rules" className="text-xs text-slate-500 mt-1 px-1">8자 이상, 영문, 숫자, 기호를 포함해야 합니다.</p>
                                 {errors.password && <p className="text-xs text-red-500 mt-1">{errors.password}</p>}
                             </div>
                             
                             <div>
-                                <Input label="비밀번호 확인" name="confirmPassword" type="password" value={formData.confirmPassword} onChange={handleInputChange} />
+                                <Input label="비밀번호 확인" name="confirmPassword" type="password" value={formData.confirmPassword} onChange={handleInputChange} className="text-sm" />
                                 {errors.confirmPassword && <p className="text-xs text-red-500 mt-1">{errors.confirmPassword}</p>}
                             </div>
 
                             <div className="grid grid-cols-2 gap-4">
                                <div>
-                                    <Input label="이름" name="name" value={formData.name} onChange={handleInputChange} />
+                                    <Input label="이름" name="name" value={formData.name} onChange={handleInputChange} className="text-sm" />
                                     {errors.name && <p className="text-xs text-red-500 mt-1">{errors.name}</p>}
                                 </div>
                                 <div>
                                     <label className="block text-sm font-medium text-slate-700 mb-1">성별</label>
-                                    <div className="flex gap-4 items-center h-10">
-                                        <label className="flex items-center cursor-pointer">
-                                            <input type="radio" name="gender" value="male" checked={formData.gender === 'male'} onChange={handleInputChange} className="custom-radio" />
-                                            <span className="mr-2"></span>
+                                    <div className="grid grid-cols-2 gap-2">
+                                        <Button
+                                            type="button"
+                                            variant={formData.gender === 'male' ? 'primary' : 'secondary'}
+                                            onClick={() => handleInputChange({ target: { name: 'gender', value: 'male' } } as any)}
+                                            className={`w-full h-10 text-xs ${formData.gender !== 'male' ? '!bg-white !text-slate-700 border border-slate-300 hover:!bg-slate-50' : ''}`}
+                                        >
                                             남성
-                                        </label>
-                                        <label className="flex items-center cursor-pointer">
-                                            <input type="radio" name="gender" value="female" checked={formData.gender === 'female'} onChange={handleInputChange} className="custom-radio" />
-                                            <span className="mr-2"></span>
+                                        </Button>
+                                        <Button
+                                            type="button"
+                                            variant={formData.gender === 'female' ? 'primary' : 'secondary'}
+                                            onClick={() => handleInputChange({ target: { name: 'gender', value: 'female' } } as any)}
+                                            className={`w-full h-10 text-xs ${formData.gender !== 'female' ? '!bg-white !text-slate-700 border border-slate-300 hover:!bg-slate-50' : ''}`}
+                                        >
                                             여성
-                                        </label>
+                                        </Button>
                                     </div>
-                                    {errors.gender && <p className="text-xs text-red-500 -mt-2">{errors.gender}</p>}
+                                    {errors.gender && <p className="text-xs text-red-500 mt-1">{errors.gender}</p>}
                                 </div>
                             </div>
                             
                             <div className="col-span-full">
                                  <label className="block text-sm font-medium text-slate-700 mb-1">생년월일</label>
                                 <div className="grid grid-cols-3 gap-2">
-                                    <select name="birthYear" value={birthYear} onChange={handleInputChange} className="bg-white w-full px-3 py-2 border border-slate-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                                    <select name="birthYear" value={birthYear} onChange={handleInputChange} className="bg-white w-full px-3 py-2 border border-slate-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-sm">
                                         <option value="">년</option>
                                         {years.map(y => <option key={y} value={y}>{y}</option>)}
                                     </select>
-                                    <select name="birthMonth" value={birthMonth} onChange={handleInputChange} className="bg-white w-full px-3 py-2 border border-slate-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                                    <select name="birthMonth" value={birthMonth} onChange={handleInputChange} className="bg-white w-full px-3 py-2 border border-slate-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-sm">
                                         <option value="">월</option>
                                         {months.map(m => <option key={m} value={m}>{m}</option>)}
                                     </select>
-                                    <select name="birthDay" value={birthDay} onChange={handleInputChange} className="bg-white w-full px-3 py-2 border border-slate-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                                    <select name="birthDay" value={birthDay} onChange={handleInputChange} className="bg-white w-full px-3 py-2 border border-slate-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-sm">
                                         <option value="">일</option>
                                         {days.map(d => <option key={d} value={d}>{d}</option>)}
                                     </select>
@@ -489,11 +494,11 @@ export const AdminRegisterForm = ({ onBackToLogin }: { onBackToLogin: () => void
                                 <label className="block text-sm font-medium text-slate-700 mb-1">이메일</label>
                                 <div className="flex items-center gap-2">
                                     <div className="flex-auto">
-                                        <Input name="emailId" value={formData.emailId} onChange={handleInputChange} />
+                                        <Input name="emailId" value={formData.emailId} onChange={handleInputChange} className="text-sm" />
                                     </div>
                                     <span className="font-semibold">@</span>
                                     <div className="w-40 flex-shrink-0">
-                                        <select name="emailDomain" value={formData.emailDomain} onChange={handleInputChange} className="bg-white w-full px-3 py-2 border border-slate-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                                        <select name="emailDomain" value={formData.emailDomain} onChange={handleInputChange} className="bg-white w-full px-3 py-2 border border-slate-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-sm">
                                             <option value="naver.com">naver.com</option>
                                             <option value="gmail.com">gmail.com</option>
                                             <option value="hanmail.net">hanmail.net</option>
@@ -509,7 +514,7 @@ export const AdminRegisterForm = ({ onBackToLogin }: { onBackToLogin: () => void
                                         value={formData.customEmailDomain}
                                         onChange={handleInputChange}
                                         placeholder="도메인 입력"
-                                        className="mt-2 bg-white"
+                                        className="mt-2 bg-white text-sm"
                                     />
                                 )}
                                 {errors.email && <p className="text-xs text-red-500 mt-1">{errors.email}</p>}
@@ -526,6 +531,7 @@ export const AdminRegisterForm = ({ onBackToLogin }: { onBackToLogin: () => void
                                             onChange={handleInputChange} 
                                             placeholder="010-1234-5678" 
                                             disabled={isVerified}
+                                            className="text-sm"
                                         />
                                         <div>
                                             <div className="relative w-full">
@@ -533,9 +539,10 @@ export const AdminRegisterForm = ({ onBackToLogin }: { onBackToLogin: () => void
                                                     name="verificationCode" 
                                                     value={formData.verificationCode} 
                                                     onChange={handleInputChange} 
-                                                    placeholder="인증번호를 입력하세요."
+                                                    placeholder="인증번호 입력"
                                                     maxLength={6}
                                                     disabled={!isCodeSent || isVerified}
+                                                    className="text-sm"
                                                 />
                                                 {isCodeSent && (
                                                   <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-red-500 font-mono">
@@ -555,12 +562,12 @@ export const AdminRegisterForm = ({ onBackToLogin }: { onBackToLogin: () => void
                                         variant="secondary"
                                         onClick={handleSendCode}
                                         disabled={isCodeSent || isVerified}
-                                        className="w-32 shrink-0 !bg-white !text-blue-600 border border-blue-600 hover:!bg-blue-50 focus:!ring-blue-500"
+                                        className="w-24 shrink-0 !bg-white !text-blue-600 border border-blue-600 hover:!bg-blue-50 focus:!ring-blue-500"
                                     >
                                         {isVerified ? (
                                             "인증 완료"
                                         ) : (
-                                            <span className="text-center leading-tight">
+                                            <span className="text-center leading-tight text-xs">
                                                 인증번호
                                                 <br />
                                                 받기
@@ -603,45 +610,45 @@ export const AdminRegisterForm = ({ onBackToLogin }: { onBackToLogin: () => void
                     {step === 3 && (formData.userType === 'sole_proprietor' || formData.userType === 'corporate') && (
                         <form onSubmit={handleBusinessSubmit} className="space-y-4">
                             <div>
-                                <Input label={formData.userType === 'corporate' ? '법인명' : '상호명'} name="businessName" value={formData.businessName} onChange={handleInputChange} />
+                                <Input label={formData.userType === 'corporate' ? '법인명' : '상호명'} name="businessName" value={formData.businessName} onChange={handleInputChange} className="text-sm" />
                                 {errors.businessName && <p className="text-xs text-red-500 mt-1">{errors.businessName}</p>}
                             </div>
                             <div>
-                                <Input label="사업자 등록번호" name="businessRegistrationNumber" value={formData.businessRegistrationNumber} onChange={handleInputChange} placeholder="'-' 없이 숫자만 입력" />
+                                <Input label="사업자 등록번호" name="businessRegistrationNumber" value={formData.businessRegistrationNumber} onChange={handleInputChange} placeholder="'-' 없이 숫자만 입력" className="text-sm" />
                                 {errors.businessRegistrationNumber && <p className="text-xs text-red-500 mt-1">{errors.businessRegistrationNumber}</p>}
                             </div>
                              {formData.userType === 'corporate' && (
                                 <div>
-                                    <Input label="법인 등록번호" name="corporateRegistrationNumber" value={formData.corporateRegistrationNumber} onChange={handleInputChange} placeholder="'-' 없이 숫자만 입력" />
+                                    <Input label="법인 등록번호" name="corporateRegistrationNumber" value={formData.corporateRegistrationNumber} onChange={handleInputChange} placeholder="'-' 없이 숫자만 입력" className="text-sm" />
                                     {errors.corporateRegistrationNumber && <p className="text-xs text-red-500 mt-1">{errors.corporateRegistrationNumber}</p>}
                                 </div>
                             )}
                             <div>
-                                <Input label="대표자 성함" name="representativeName" value={formData.representativeName} onChange={handleInputChange} />
+                                <Input label="대표자 성함" name="representativeName" value={formData.representativeName} onChange={handleInputChange} className="text-sm" />
                                 {errors.representativeName && <p className="text-xs text-red-500 mt-1">{errors.representativeName}</p>}
                             </div>
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
-                                    <Input label="업태" name="businessType" value={formData.businessType} onChange={handleInputChange} />
+                                    <Input label="업태" name="businessType" value={formData.businessType} onChange={handleInputChange} className="text-sm" />
                                     {errors.businessType && <p className="text-xs text-red-500 mt-1">{errors.businessType}</p>}
                                 </div>
                                 <div>
-                                    <Input label="종목" name="businessItem" value={formData.businessItem} onChange={handleInputChange} />
+                                    <Input label="종목" name="businessItem" value={formData.businessItem} onChange={handleInputChange} className="text-sm" />
                                     {errors.businessItem && <p className="text-xs text-red-500 mt-1">{errors.businessItem}</p>}
                                 </div>
                             </div>
                             <div>
                                 <label className="block text-sm font-medium text-slate-700 mb-1">개업년월일</label>
                                 <div className="grid grid-cols-3 gap-2">
-                                    <select name="businessOpeningYear" value={formData.businessOpeningYear} onChange={handleInputChange} className="bg-white w-full px-3 py-2 border border-slate-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                                    <select name="businessOpeningYear" value={formData.businessOpeningYear} onChange={handleInputChange} className="bg-white w-full px-3 py-2 border border-slate-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-sm">
                                         <option value="">년</option>
                                         {businessYears.map(y => <option key={y} value={y}>{y}</option>)}
                                     </select>
-                                    <select name="businessOpeningMonth" value={formData.businessOpeningMonth} onChange={handleInputChange} className="bg-white w-full px-3 py-2 border border-slate-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                                    <select name="businessOpeningMonth" value={formData.businessOpeningMonth} onChange={handleInputChange} className="bg-white w-full px-3 py-2 border border-slate-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-sm">
                                         <option value="">월</option>
                                         {businessMonths.map(m => <option key={m} value={m}>{m}</option>)}
                                     </select>
-                                    <select name="businessOpeningDay" value={formData.businessOpeningDay} onChange={handleInputChange} className="bg-white w-full px-3 py-2 border border-slate-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                                    <select name="businessOpeningDay" value={formData.businessOpeningDay} onChange={handleInputChange} className="bg-white w-full px-3 py-2 border border-slate-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-sm">
                                         <option value="">일</option>
                                         {businessDays.map(d => <option key={d} value={d}>{d}</option>)}
                                     </select>
@@ -652,7 +659,7 @@ export const AdminRegisterForm = ({ onBackToLogin }: { onBackToLogin: () => void
                                 <label className="block text-sm font-medium text-slate-700 mb-1">
                                     {formData.userType === 'corporate' ? '법인 사업자 등록증' : '사업자 등록증'}
                                 </label>
-                                <div className="flex items-center justify-between p-3 bg-slate-50 rounded-md border">
+                                <div className="flex items-center justify-between p-3 bg-white rounded-md border">
                                     <p className="text-sm text-slate-600 truncate">
                                         {formData.businessRegistrationFile ? formData.businessRegistrationFile.name : '파일을 선택해주세요'}
                                     </p>

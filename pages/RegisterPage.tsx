@@ -1,9 +1,8 @@
 
 
-
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-// FIX: Corrected import path casing to use PascalCase 'Auth' directory.
+// FIX: Corrected import path for AdminRegisterForm to be relative.
 import { AdminRegisterForm } from './Auth/AdminRegisterForm';
 
 const RegisterPage = () => {

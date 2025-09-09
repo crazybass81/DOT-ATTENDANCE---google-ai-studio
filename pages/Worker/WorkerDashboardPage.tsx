@@ -1,28 +1,28 @@
 
-
 import React, { useState, useEffect, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Employee, EmployeeAppStatus, AttendanceRecord, AttendanceStatus } from '../../types';
 import { Button, Card, Modal } from '../../components/ui';
 import { calculateWorkHours } from '../../utils';
+// FIX: Corrected import path casing for admin view components to use PascalCase 'Admin'.
 import { AttendanceView } from '../Admin/AttendanceView';
 
 const StatusIndicator = ({ status }: { status: EmployeeAppStatus }) => {
     const statusConfig = {
-        [EmployeeAppStatus.NONE]: { text: '업무 시작 전', emoji: '☀️', className: 'bg-slate-400 text-white' },
-        [EmployeeAppStatus.WORKING]: { text: '업무 중', emoji: '💼', className: 'bg-green-500 text-white' },
-        [EmployeeAppStatus.BREAK]: { text: '휴식 중', emoji: '☕', className: 'bg-yellow-500 text-white' },
-        [EmployeeAppStatus.DONE]: { text: '업무 종료', emoji: '🏠', className: 'bg-gray-600 text-white' },
-        [EmployeeAppStatus.AWAY]: { text: '외근 중', emoji: '🚗', className: 'bg-purple-500 text-white' },
+        [EmployeeAppStatus.NONE]: { text: '업무 시작 전', emoji: '🛌', className: 'bg-gradient-to-br from-slate-400 to-slate-600 text-white' },
+        [EmployeeAppStatus.WORKING]: { text: '업무 중', emoji: '💼', className: 'bg-gradient-to-br from-green-400 to-green-600 text-white' },
+        [EmployeeAppStatus.BREAK]: { text: '휴식 중', emoji: '☕', className: 'bg-gradient-to-br from-yellow-400 to-yellow-600 text-white' },
+        [EmployeeAppStatus.DONE]: { text: '업무 종료', emoji: '🏠', className: 'bg-gradient-to-br from-gray-500 to-gray-700 text-white' },
+        [EmployeeAppStatus.AWAY]: { text: '외근 중', emoji: '🚗', className: 'bg-gradient-to-br from-purple-400 to-purple-600 text-white' },
     };
 
     const config = statusConfig[status] || { text: '알 수 없음', emoji: '❓', className: 'bg-slate-400 text-white' };
 
     return (
         <div className="flex justify-center items-center my-6">
-            <div className={`w-56 h-56 rounded-full flex flex-col items-center justify-center p-4 text-center font-bold shadow-lg ${config.className}`}>
-                <span className="text-7xl mb-4" role="img" aria-hidden="true">{config.emoji}</span>
-                <span className="text-3xl leading-tight">{config.text}</span>
+            <div className={`w-48 h-48 rounded-full flex flex-col items-center justify-center p-2 text-center font-bold shadow-lg ${config.className}`}>
+                <span className="text-6xl mb-2" role="img" aria-hidden="true">{config.emoji}</span>
+                <span className="text-xl leading-tight">{config.text}</span>
             </div>
         </div>
     );
@@ -49,16 +49,19 @@ const DashboardContent = ({ employee, status, workLog }: {
 
                 <StatusIndicator status={status} />
 
-                <Card className="!mt-8">
-                    <div className="text-center mb-4">
-                        <p className="font-mono text-4xl tracking-widest font-bold text-slate-700">
+                <Card className="!mt-8 bg-white shadow-lg rounded-xl !p-8">
+                    <div className="text-center">
+                        <p className="text-base text-slate-500 mb-2">
+                            {currentTime.toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric', weekday: 'long' })}
+                        </p>
+                        <p className="font-mono text-5xl tracking-widest font-bold text-slate-800">
                             {currentTime.toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' })}
                         </p>
                     </div>
 
                     {workLog.length > 0 && (
-                        <div className="text-left border-t pt-4">
-                            <h4 className="font-semibold mb-2">오늘의 기록</h4>
+                        <div className="text-left border-t border-slate-200 pt-6 mt-8">
+                            <h4 className="font-semibold mb-2 text-slate-700">오늘의 기록</h4>
                             <ul className="text-sm space-y-1 text-slate-600 max-h-32 overflow-y-auto pr-2">
                                 {workLog.slice().reverse().map((log, index) => (
                                     <li key={index} className="flex justify-between p-1.5 bg-slate-50 rounded-md">
@@ -273,7 +276,7 @@ const WorkerDashboardPage = ({ allEmployees, allAttendance, setAttendance }: Wor
                 status = EmployeeAppStatus.BREAK;
             }
             if (todayRecord.clockOut) {
-                status = EmployeeAppStatus.NONE;
+                status = EmployeeAppStatus.DONE;
             }
         }
         
@@ -431,17 +434,6 @@ const WorkerDashboardPage = ({ allEmployees, allAttendance, setAttendance }: Wor
             >
                 <RecordContent onRecord={handleRecordAction} onClose={() => setIsRecordModalOpen(false)} />
             </Modal>
-
-            {switchedFromAdmin && employee && employee.id === 101 && (
-                <button
-                    onClick={handleSwitchToAdmin}
-                    className="fixed bottom-6 right-6 z-40 bg-blue-600 text-white w-28 h-14 rounded-full flex items-center justify-center text-sm font-semibold shadow-lg hover:bg-blue-700 transition-transform hover:scale-110 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-                    aria-label="관리자 모드로 복귀"
-                >
-                    <span role="img" aria-hidden="true" className="mr-2 text-lg">🔄</span>
-                    관리자 모드
-                </button>
-            )}
             
             <button
                 onClick={() => setIsRecordModalOpen(true)}

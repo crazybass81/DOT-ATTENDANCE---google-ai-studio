@@ -137,11 +137,7 @@ const WorkerRegistrationPage = () => {
                                                 value={storeId === 'sample-store' ? '' : storeId || ''}
                                                 readOnly
                                                 placeholder="스캔을 눌러 QR코드를 스캔해주세요"
-                                                className="flex-1 px-3 py-2 border border-slate-300 rounded-md shadow-sm focus:outline-none focus:ring-red-500 focus:border-red-500 bg-slate-100 cursor-not-allowed"
-                                            />
-                                            <Button type="button" onClick={() => setIsScannerOpen(true)} className="flex-shrink-0 !bg-red-600 hover:!bg-red-700 focus:!ring-red-500">
-                                                스캔
-                                            </Button>
+                                                className="flex-1 px-3 py-2 border border-slate-300 rounded-md shadow-sm focus:outline-none focus:ring-red-500 focus:border-red-500 bg-slate-100 cursor-not-allowed"/>
                                         </div>
                                     </div>
                                     <div>

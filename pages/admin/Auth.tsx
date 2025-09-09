@@ -534,12 +534,12 @@ export const AdminRegister = ({ onBackToLogin }: { onBackToLogin: () => void }) 
                                         variant="secondary"
                                         onClick={handleSendCode}
                                         disabled={isCodeSent || isVerified}
-                                        className="w-32 shrink-0 !bg-white !text-blue-600 border border-blue-600 hover:!bg-blue-50 focus:!ring-blue-500"
+                                        className="w-24 shrink-0 !bg-white !text-blue-600 border border-blue-600 hover:!bg-blue-50 focus:!ring-blue-500"
                                     >
                                         {isVerified ? (
                                             "인증 완료"
                                         ) : (
-                                            <span className="text-center leading-tight">
+                                            <span className="text-center leading-tight text-xs">
                                                 인증번호
                                                 <br />
                                                 받기
@@ -695,158 +695,6 @@ export const AdminRegister = ({ onBackToLogin }: { onBackToLogin: () => void }) 
                     </div>
                 </div>
             </Modal>
-        </div>
-    );
-};
-
-
-export const AdminLogin = ({ onLogin }: { onLogin: (account: { id: string, password?: string, companyCode: string }) => void }) => {
-    const [view, setView] = useState<'login' | 'register'>('login');
-    const [isFindIdPwModalOpen, setFindIdPwModalOpen] = useState(false);
-    const [id, setId] = useState('');
-    const [password, setPassword] = useState('');
-    const [companyCode, setCompanyCode] = useState('');
-    const [showAutocomplete, setShowAutocomplete] = useState(false);
-    const idInputRef = useRef<HTMLDivElement>(null);
-    const [error, setError] = useState('');
-
-    const handleAccountSelect = (account: typeof MOCK_ACCOUNTS[0]) => {
-        setId(account.id);
-        setPassword(account.password);
-        setCompanyCode(account.companyCode);
-        setShowAutocomplete(false);
-    };
-
-    useEffect(() => {
-        const handleClickOutside = (event: MouseEvent) => {
-            if (idInputRef.current && !idInputRef.current.contains(event.target as Node)) {
-                setShowAutocomplete(false);
-            }
-        };
-        document.addEventListener("mousedown", handleClickOutside);
-        return () => {
-            document.removeEventListener("mousedown", handleClickOutside);
-        };
-    }, []);
-
-    const filteredAccounts = MOCK_ACCOUNTS.filter(acc => acc.id.toLowerCase().startsWith(id.toLowerCase()));
-    
-    const handleLoginSubmit = (e: React.FormEvent) => {
-        e.preventDefault();
-        setError('');
-        const account = MOCK_ACCOUNTS.find(
-            acc => acc.id === id && acc.password === password && acc.companyCode === companyCode
-        );
-
-        if (account) {
-            onLogin(account);
-        } else {
-            setError('아이디, 비밀번호 또는 업체코드가 일치하지 않습니다.');
-        }
-    };
-
-    const renderContent = () => {
-        if (view === 'register') {
-            return <AdminRegister onBackToLogin={() => setView('login')} />;
-        }
-
-        return (
-            <div className="w-full max-w-sm">
-                <div className="text-center mb-8">
-                    <h1 className="text-4xl font-bold text-blue-700">DOT ATTENDANCE</h1>
-                    <p className="text-lg text-slate-600 mt-1">관리자</p>
-                </div>
-                <div className="bg-white/70 backdrop-blur-sm border border-white/30 rounded-lg shadow-xl p-6">
-                    <form className="space-y-4" onSubmit={handleLoginSubmit}>
-                        <div className="relative" ref={idInputRef}>
-                            <Input 
-                                placeholder="ID" 
-                                id="id" 
-                                name="id" 
-                                required 
-                                autoComplete="off"
-                                value={id}
-                                onChange={(e) => {
-                                    setId(e.target.value);
-                                    if (!showAutocomplete) setShowAutocomplete(true);
-                                    setError('');
-                                }}
-                                onFocus={() => setShowAutocomplete(true)}
-                            />
-                            {showAutocomplete && filteredAccounts.length > 0 && (
-                                <div className="absolute z-10 w-full mt-1 bg-white border border-slate-300 rounded-md shadow-lg">
-                                    <ul className="py-1 max-h-40 overflow-y-auto">
-                                        {filteredAccounts.map(account => (
-                                            <li 
-                                                key={account.id} 
-                                                className="px-3 py-2 cursor-pointer hover:bg-slate-100"
-                                                onClick={() => handleAccountSelect(account)}
-                                                onMouseDown={(e) => e.preventDefault()} // Prevents onFocus from firing on input
-                                            >
-                                                {account.id}
-                                            </li>
-                                        ))}
-                                    </ul>
-                                </div>
-                            )}
-                        </div>
-                        <Input 
-                            placeholder="비밀번호" 
-                            id="password" 
-                            name="password" 
-                            type="password" 
-                            required 
-                            value={password}
-                            onChange={(e) => { setPassword(e.target.value); setError(''); }}
-                        />
-                        <Input 
-                            placeholder="업체코드" 
-                            id="companyCode" 
-                            name="companyCode" 
-                            required 
-                            value={companyCode}
-                            onChange={(e) => { setCompanyCode(e.target.value); setError(''); }}
-                        />
-                        {error && <p className="text-sm text-red-500 text-center -my-2">{error}</p>}
-                        <Button type="submit" className="w-full !mt-5">로그인</Button>
-                    </form>
-                    <div className="text-center pt-2 text-sm text-slate-700">
-                        <button onClick={() => setView('register')} className="hover:underline">회원가입</button>
-                        <span className="mx-2 text-slate-400">|</span>
-                        <button onClick={() => setFindIdPwModalOpen(true)} className="hover:underline">
-                            ID/PW찾기
-                        </button>
-                    </div>
-
-                    <div className="pt-2 flex items-center">
-                        <div className="flex-grow border-t border-slate-400/50"></div>
-                        <span className="flex-shrink mx-4 text-slate-500 text-sm">OR</span>
-                        <div className="flex-grow border-t border-slate-400/50"></div>
-                    </div>
-
-                    <div className="flex justify-center gap-4">
-                        <button aria-label="네이버로 로그인" className="w-12 h-12 flex items-center justify-center rounded-full bg-[#03C75A] text-white font-bold text-xl shadow-md hover:opacity-90 transition-opacity">N</button>
-                        
-                        <button aria-label="구글로 로그인" className="w-12 h-12 flex items-center justify-center rounded-full bg-white border border-slate-200 shadow-md hover:bg-slate-50 transition-colors">
-                            <svg viewBox="0 0 48 48" className="w-6 h-6">
-                                <path fill="#FFC107" d="M43.611,20.083H42V20H24v8h11.303c-1.649,4.657-6.08,8-11.303,8c-6.627,0-12-5.373-12-12s5.373-12,12-12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C12.955,4,4,12.955,4,24s8.955,20,20,20s20-8.955,20-20C44,22.659,43.862,21.35,43.611,20.083z"></path>
-                                <path fill="#FF3D00" d="M6.306,14.691l6.571,4.819C14.655,15.108,18.961,12,24,12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C16.318,4,9.656,8.337,6.306,14.691z"></path>
-                                <path fill="#4CAF50" d="M24,44c5.166,0,9.86-1.977,13.409-5.192l-6.19-5.238C29.211,35.091,26.715,36,24,36c-5.202,0-9.619-3.317-11.283-7.946l-6.522,5.025C9.505,39.556,16.227,44,24,44z"></path>
-                                <path fill="#1976D2" d="M43.611,20.083H42V20H24v8h11.303c-0.792,2.237-2.231,4.166-4.087,5.571l6.19,5.238C42.012,35.816,44,30.138,44,24C44,22.659,43.862,21.35,43.611,20.083z"></path>
-                            </svg>
-                        </button>
-
-                        <button aria-label="카카오톡으로 로그인" className="w-12 h-12 flex items-center justify-center rounded-full bg-[#FEE500] shadow-md hover:opacity-90 transition-opacity">
-                            <svg viewBox="0 0 32 32" className="w-6 h-6">
-                                <path d="M16 4.64c-6.96 0-12.64 4.48-12.64 10.08 0 3.52 2.32 6.64 5.76 8.48l-1.92 7.04 7.68-4.16c.4 0.08 0.8 0.08 1.12 0.08 6.96 0 12.64-4.48 12.64-10.08s-5.68-10.08-12.64-10.08z"></path>
-                            </svg>
-                        </button>
-                    </div>
-                </div>
-                <div className="text-center mt-8">
-                    <Link to="/" className="inline-block px-6 py-2.5 rounded-md font-semibold text-white bg-white/20 hover:bg-white/30 backdrop-blur-sm transition-colors text-sm">처음으로</Link>
-                </div>
-            </div>
         </div>
     );
 };

@@ -117,17 +117,17 @@ export const DashboardView = ({ onNavigate, employees, attendance, onOpenEmploye
                 <Card>
                     <h3 className="font-bold text-lg mb-4">오늘의 근태 특이사항</h3>
                      <div className="grid grid-cols-3 gap-4 text-center">
-                        <button onClick={() => handleStatusClick('late')} className="bg-red-50 p-4 rounded-lg hover:bg-red-100 transition-colors focus:outline-none focus:ring-2 focus:ring-red-400">
-                            <p className="text-sm text-slate-500">지각 <span role="img" aria-label="late">🏃💨</span></p>
-                            <p className="text-3xl font-bold text-red-600">{lateEmployees.length}</p>
+                        <button onClick={() => setIsCostModalOpen(true)} className="bg-red-50 p-4 rounded-lg hover:bg-red-100 transition-colors focus:outline-none focus:ring-2 focus:ring-red-400">
+                            <p className="text-sm text-slate-500">지각 <span role="img" aria-label="late">🏃</span></p>
+                            <p className="text-3xl font-bold text-red-600">0</p>
                         </button>
-                        <button onClick={() => handleStatusClick('absent')} className="bg-slate-100 p-4 rounded-lg hover:bg-slate-200 transition-colors focus:outline-none focus:ring-2 focus:ring-slate-400">
+                        <button onClick={() => setIsCostModalOpen(true)} className="bg-slate-100 p-4 rounded-lg hover:bg-slate-200 transition-colors focus:outline-none focus:ring-2 focus:ring-slate-400">
                             <p className="text-sm text-slate-500">결근 <span role="img" aria-label="absent">🤷</span></p>
-                            <p className="text-3xl font-bold text-slate-600">{absentEmployees.length}</p>
+                            <p className="text-3xl font-bold text-slate-600">0</p>
                         </button>
-                        <button onClick={() => handleStatusClick('overtime')} className="bg-blue-50 p-4 rounded-lg hover:bg-blue-100 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-400">
-                            <p className="text-sm text-slate-500">초과근무 <span role="img" aria-label="overtime">💪</span></p>
-                            <p className="text-3xl font-bold text-blue-600">{overtimeEmployees.length}</p>
+                        <button onClick={() => setIsCostModalOpen(true)} className="bg-blue-50 p-4 rounded-lg hover:bg-blue-100 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-400">
+                            <p className="text-sm text-slate-500">초과 <span role="img" aria-label="overtime">💪</span></p>
+                            <p className="text-3xl font-bold text-blue-600">0</p>
                         </button>
                     </div>
                 </Card>

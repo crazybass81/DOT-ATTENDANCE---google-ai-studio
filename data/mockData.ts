@@ -10,8 +10,6 @@ export const STORE_DATA = [
 
 export const MOCK_ACCOUNTS = [
     { id: 'admin', password: 'password', companyCode: 'DOT-002' },
-    { id: 'bunsik-admin', password: 'password', companyCode: 'DOT-BUNSIK' },
-    { id: 'jokbal-admin', password: 'password', companyCode: 'DOT-JOKBAL' },
 ];
 
 // MOCK DATA
@@ -21,7 +19,6 @@ export const MOCK_NEW_WORKERS_DATA: NewWorkerRequest[] = [
 ];
 
 export const MOCK_EMPLOYEES_DATA: (Employee & { accountNumber?: string; contract?: string | null; bankAccountCopy?: string | null; })[] = [
-    { id: 101, name: '김성실', position: '매니저', status: '재직', infoStatus: '정상', hireDate: '2023-01-15', lastWorkDate: '2024-08-10', phone: '010-1234-5678', birthdate: '1995-02-20', employmentType: '정규', payType: '월급', payRate: 3500000, accountNumber: '국민 111-222-333333', contract: '근로계약서_김성실.pdf', bankAccountCopy: '통장사본_김성실.jpg', color: '#3b82f6', storeId: 'bunsik-store', jobType: '분식' },
     { id: 102, name: '이근면', position: '정직원', status: '재직', infoStatus: '정상', hireDate: '2023-06-01', lastWorkDate: '2024-08-10', phone: '010-9876-5432', birthdate: '1999-07-07', employmentType: '정규', payType: '월급', payRate: 3000000, accountNumber: '신한 444-555-666666', contract: null, bankAccountCopy: '통장사본_이근면.pdf', color: '#10b981', storeId: 'sample-store', jobType: '양식' },
     { id: 103, name: '최알바', position: '파트타이머', status: '재직', infoStatus: '미흡', hireDate: '2024-03-10', lastWorkDate: '2024-08-09', phone: '010-5555-6666', birthdate: '2002-12-25', employmentType: '아르바이트', payType: '시급', payRate: 12000, accountNumber: '', contract: null, bankAccountCopy: null, color: '#f59e0b', storeId: 'sample-store', jobType: '양식' },
     { id: 104, name: '정퇴사', position: '정직원', status: '퇴사', infoStatus: '정상', hireDate: '2022-08-01', lastWorkDate: '2024-07-31', phone: '010-0000-0000', birthdate: '1993-10-10', employmentType: '정규', payType: '월급', payRate: 3200000, accountNumber: '우리 777-888-999999', contract: '근로계약서_정퇴사.pdf', bankAccountCopy: '통장사본_정퇴사.jpg', color: '#6b7280', reasonForResignation: '개인 사유', storeId: 'sample-store', jobType: '양식' },
@@ -33,9 +30,6 @@ export const MOCK_EMPLOYEES_DATA: (Employee & { accountNumber?: string; contract
 ];
 
 export const MOCK_SCHEDULES_DATA: Schedule[] = [
-    // 김성실 (bunsik-store)
-    { id: 201, employeeId: 101, employeeName: '김성실', start: new Date('2024-08-10T09:00:00'), end: new Date('2024-08-10T18:00:00'), breakMinutes: 60, storeId: 'bunsik-store' },
-    { id: 202, employeeId: 101, employeeName: '김성실', start: new Date('2024-08-11T09:00:00'), end: new Date('2024-08-11T18:00:00'), breakMinutes: 60, storeId: 'bunsik-store' },
     // 이근면 (sample-store)
     { id: 203, employeeId: 102, employeeName: '이근면', start: new Date('2024-08-10T10:00:00'), end: new Date('2024-08-10T19:00:00'), breakMinutes: 60, storeId: 'sample-store' },
     // 최알바 (sample-store)

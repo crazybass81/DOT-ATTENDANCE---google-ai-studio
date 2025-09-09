@@ -2,24 +2,21 @@
 
 
 
-
-
-
 import React, { useState, useMemo, useCallback, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { NewWorkerRequest, Employee, Schedule, AttendanceRecord } from '../types';
-import { MOCK_EMPLOYEES_DATA, MOCK_SCHEDULES_DATA, MOCK_ATTENDANCE, STORE_DATA } from '../data/mockData';
-import { Modal, Button, Card } from '../components/ui';
-import { AppHeader } from '../components/admin/AppHeader';
-import { EmployeeInfoForm } from '../components/admin/EmployeeInfoForm';
-import type { EmployeeFormData } from '../components/admin/EmployeeInfoForm';
+import { NewWorkerRequest, Employee, Schedule, AttendanceRecord } from '../../../types';
+import { MOCK_EMPLOYEES_DATA, MOCK_SCHEDULES_DATA, MOCK_ATTENDANCE, STORE_DATA } from '../../../data/mockData';
+import { Modal, Button, Card } from '../../../components/ui';
+import { AppHeader } from '../../../components/admin/AppHeader';
+import { EmployeeInfoForm } from '../../../components/admin/EmployeeInfoForm';
+import type { EmployeeFormData } from '../../../components/admin/EmployeeInfoForm';
 // FIX: Corrected import paths for admin view components to use PascalCase 'Admin' directory.
-import { DashboardView } from './Admin/DashboardView';
-import { EmployeeView } from './Admin/EmployeeView';
-import { AttendanceView } from './Admin/AttendanceView';
-import { ScheduleView } from './Admin/ScheduleView';
-import { QRView } from './Admin/QRView';
-import { getRandomColor } from '../utils';
+import { DashboardView } from '../../Admin/DashboardView';
+import { EmployeeView } from '../../Admin/EmployeeView';
+import { AttendanceView } from '../../Admin/AttendanceView';
+import { ScheduleView } from '../../Admin/ScheduleView';
+import { QRView } from '../../Admin/QRView';
+import { getRandomColor } from '../../../utils';
 
 type Account = { id: string, password?: string, companyCode: string };
 
@@ -212,7 +209,7 @@ const AdminApp = () => {
 
     const NavItem = ({ icon, label, pageName }: { icon: string, label: string, pageName: string }) => (
         <button 
-            onClick={pageName === 'logout' ? handleLogout : () => handleNavigate(pageName)}
+            onClick={pageName === 'logout' ? handleLogout : () => handleNavigate(pageName)} 
             className={`flex items-center gap-3 px-3 py-2.5 rounded-md w-full text-left transition-colors ${currentPage === pageName ? 'bg-blue-600 text-white' : 'hover:bg-slate-200'}`}
         >
             <span className="w-5 text-center text-xl">{icon}</span>

@@ -5,50 +5,8 @@ import { useParams, Link, useNavigate } from 'react-router-dom';
 import { Button, Card, Modal, DatePicker } from '../components/ui';
 import { MOCK_EMPLOYEES_DATA } from '../data/mockData';
 import { Employee } from '../types';
-
-
-const QRScannerModal = ({ isOpen, onClose, onScanSuccess }: { isOpen: boolean, onClose: () => void, onScanSuccess: (data: string) => void }) => {
-    const videoRef = useRef<HTMLVideoElement>(null);
-    const streamRef = useRef<MediaStream | null>(null);
-
-    useEffect(() => {
-        if (isOpen) {
-            navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } })
-                .then(stream => {
-                    if (videoRef.current) {
-                        videoRef.current.srcObject = stream;
-                        streamRef.current = stream;
-                    }
-                })
-                .catch(err => {
-                    console.error("Error accessing camera:", err);
-                    alert("카메라에 접근할 수 없습니다. 권한을 확인해주세요.");
-                    onClose();
-                });
-        } else {
-            if (streamRef.current) {
-                streamRef.current.getTracks().forEach(track => track.stop());
-                streamRef.current = null;
-            }
-        }
-        
-        return () => {
-             if (streamRef.current) {
-                streamRef.current.getTracks().forEach(track => track.stop());
-            }
-        }
-    }, [isOpen, onClose]);
-
-    return (
-        <Modal isOpen={isOpen} onClose={onClose} title="QR 코드 스캔" size="sm">
-            <div className="relative w-full aspect-square bg-black rounded-md overflow-hidden">
-                <video ref={videoRef} autoPlay playsInline className="w-full h-full object-cover"></video>
-                <div className="absolute inset-0 border-4 border-white/50 rounded-md"></div>
-            </div>
-            <p className="text-center text-sm text-slate-500 my-4">QR 코드를 화면에 맞춰주세요.</p>
-        </Modal>
-    );
-};
+// FIX: Corrected import path for QRScannerModal to use a shared component path.
+import QRScannerModal from '../components/shared/QRScannerModal';
 
 
 const WorkerApp = () => {

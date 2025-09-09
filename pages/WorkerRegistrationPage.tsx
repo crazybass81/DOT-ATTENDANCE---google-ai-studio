@@ -1,11 +1,8 @@
 
 
-
-
-
-
 import React, { useState, useRef, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
+// FIX: Corrected import paths for components to be relative to pages/
 import { Button, Card, DatePicker, Modal } from '../components/ui';
 import QRScannerModal from '../components/shared/QRScannerModal';
 

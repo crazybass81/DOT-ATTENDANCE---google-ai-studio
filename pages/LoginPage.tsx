@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button, Input, Modal, Textarea } from '../components/ui';
@@ -9,39 +8,7 @@ export const LoginPage = () => {
     const [id, setId] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
-    const [showAutocomplete, setShowAutocomplete] = useState(false);
-    const idInputRef = useRef<HTMLDivElement>(null);
     const [isFindIdPwModalOpen, setFindIdPwModalOpen] = useState(false);
-
-    const allAccounts = [
-      ...MOCK_ACCOUNTS.map(acc => ({ type: '관리자', id: acc.id, password: acc.password })),
-      ...MOCK_EMPLOYEES_DATA.map(emp => ({ type: '근로자', id: emp.name, password: emp.birthdate.replace(/-/g, '') }))
-    ];
-
-    const filteredAccounts = id
-      ? allAccounts.filter(acc => acc.id.toLowerCase().includes(id.toLowerCase()))
-      : allAccounts;
-
-    const handleAccountSelect = (account: { id: string, password?: string }) => {
-        setId(account.id);
-        if (account.password) {
-            setPassword(account.password);
-        }
-        setShowAutocomplete(false);
-        setError('');
-    };
-    
-    useEffect(() => {
-        const handleClickOutside = (event: MouseEvent) => {
-            if (idInputRef.current && !idInputRef.current.contains(event.target as Node)) {
-                setShowAutocomplete(false);
-            }
-        };
-        document.addEventListener("mousedown", handleClickOutside);
-        return () => {
-            document.removeEventListener("mousedown", handleClickOutside);
-        };
-    }, []);
 
     const handleLoginSubmit = (e: React.FormEvent) => {
         e.preventDefault();
@@ -94,7 +61,7 @@ export const LoginPage = () => {
                     </div>
                     <div className="bg-white/70 backdrop-blur-sm border border-white/30 rounded-lg shadow-xl p-6">
                         <form className="space-y-4" onSubmit={handleLoginSubmit}>
-                             <div className="relative" ref={idInputRef}>
+                             <div className="relative">
                                 <Input 
                                     placeholder="ID" 
                                     id="id" 
@@ -104,30 +71,9 @@ export const LoginPage = () => {
                                     value={id}
                                     onChange={(e) => {
                                         setId(e.target.value);
-                                        if (!showAutocomplete) setShowAutocomplete(true);
                                         setError('');
                                     }}
-                                    onFocus={() => setShowAutocomplete(true)}
                                 />
-                                {showAutocomplete && filteredAccounts.length > 0 && (
-                                    <div className="absolute z-10 w-full mt-1 bg-white border border-slate-300 rounded-md shadow-lg">
-                                        <ul className="py-1 max-h-48 overflow-y-auto">
-                                            {filteredAccounts.map(account => (
-                                                <li 
-                                                    key={`${account.type}-${account.id}`} 
-                                                    className="px-3 py-2 cursor-pointer hover:bg-slate-100 flex justify-between items-center"
-                                                    onClick={() => handleAccountSelect(account)}
-                                                    onMouseDown={(e) => e.preventDefault()}
-                                                >
-                                                    <span>{account.id}</span>
-                                                    <span className={`text-xs px-1.5 py-0.5 rounded-full ${account.type === '관리자' ? 'bg-blue-100 text-blue-800' : 'bg-red-100 text-red-800'}`}>
-                                                        {account.type}
-                                                    </span>
-                                                </li>
-                                            ))}
-                                        </ul>
-                                    </div>
-                                )}
                             </div>
                             <Input 
                                 placeholder="비밀번호" 

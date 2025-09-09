@@ -1,6 +1,4 @@
 
-
-
 import React, { useState, useEffect, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { MOCK_EMPLOYEES_DATA } from '../../data/mockData';
@@ -42,7 +40,7 @@ const ActionButton = ({ status, onClick }: { status: 'none' | 'working' | 'break
 
 const StatusIndicator = ({ status }: { status: EmployeeAppStatus }) => {
     const statusConfig = {
-        [EmployeeAppStatus.NONE]: { text: '업무 시작 전', emoji: '☀️', className: 'bg-slate-400 text-white' },
+        [EmployeeAppStatus.NONE]: { text: '업무 시작 전', emoji: '🛌', className: 'bg-slate-400 text-white' },
         [EmployeeAppStatus.WORKING]: { text: '업무 중', emoji: '🧑‍💻', className: 'bg-green-500 text-white' },
         [EmployeeAppStatus.BREAK]: { text: '휴식 중', emoji: '☕', className: 'bg-yellow-500 text-white' },
         [EmployeeAppStatus.DONE]: { text: '업무 종료', emoji: '🎉', className: 'bg-gray-600 text-white' },
@@ -55,7 +53,7 @@ const StatusIndicator = ({ status }: { status: EmployeeAppStatus }) => {
         <div className="flex justify-center items-center my-6">
             <div className={`w-48 h-48 rounded-full flex flex-col items-center justify-center p-2 text-center font-bold shadow-lg ${config.className}`}>
                 <span className="text-6xl mb-2" role="img" aria-hidden="true">{config.emoji}</span>
-                <span className="text-2xl">{config.text}</span>
+                <span className="text-xl">{config.text}</span>
             </div>
         </div>
     );
@@ -117,6 +115,9 @@ const DashboardContent = ({ employee, status, workLog, onStatusChange }: {
 
                 <Card className="!mt-8">
                     <div className="text-center mb-4">
+                        <p className="text-base text-slate-500 mb-2">
+                            {currentTime.toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric', weekday: 'long' })}
+                        </p>
                         <p className="font-mono text-4xl tracking-widest font-bold text-slate-700">
                             {currentTime.toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' })}
                         </p>

@@ -17,7 +17,7 @@ const RegisterPage = () => {
                 <div className="blob blob-admin-4"></div>
                 <div className="blob blob-admin-5"></div>
             </div>
-            <div className="relative z-10 flex min-h-screen flex-col items-center justify-center p-16">
+            <div className="relative z-10 flex min-h-screen flex-col items-center justify-center p-12">
                 <AdminRegisterForm onBackToLogin={() => navigate('/')} />
             </div>
         </div>

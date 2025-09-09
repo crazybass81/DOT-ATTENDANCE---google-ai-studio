@@ -1,17 +1,13 @@
 
 
 
-
-
-
-
-
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+// FIX: Corrected relative import paths for nested file structure.
 import { MOCK_EMPLOYEES_DATA } from '../data/mockData';
 import { Employee, EmployeeAppStatus } from '../types';
 import { Button, Card, Modal } from '../components/ui';
-// FIX: Corrected import path for admin view components to use PascalCase 'Admin' and a relative path.
+// FIX: Corrected import path for admin view components to use PascalCase 'Admin' and a correct relative path.
 import { AttendanceView } from './Admin/AttendanceView';
 
 const ActionButton = ({ status, onClick }: { status: 'none' | 'working' | 'break' | 'done' | 'away', onClick: (newStatus: EmployeeAppStatus) => void }) => {

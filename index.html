@@ -16,26 +16,26 @@
 }
 </script>
 <style>
-      /* Custom scrollbar for modern browsers */
+      /* Hide scrollbars globally while allowing scrolling */
+      /* For Webkit-based browsers (Chrome, Safari) */
       ::-webkit-scrollbar {
-        width: 8px;
-        height: 8px;
-      }
-      ::-webkit-scrollbar-track {
-        background: #ffffff;
-      }
-      ::-webkit-scrollbar-thumb {
-        background-color: #cccccc;
-        border-radius: 4px;
-        border: 2px solid #ffffff;
-      }
-      ::-webkit-scrollbar-thumb:hover {
-        background-color: #b3b3b3;
+        display: none;
       }
       /* For Firefox */
       * {
-        scrollbar-width: thin;
-        scrollbar-color: #cccccc #ffffff;
+        scrollbar-width: none;
+      }
+      /* For IE, Edge */
+      body {
+        -ms-overflow-style: none;
+      }
+      
+      .no-scrollbar::-webkit-scrollbar {
+        display: none;
+      }
+      .no-scrollbar {
+        -ms-overflow-style: none;
+        scrollbar-width: none;
       }
 
       /* Custom Radio Button Styles */
